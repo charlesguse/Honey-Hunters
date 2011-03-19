@@ -1,3 +1,4 @@
+from google.appengine.ext.webapp.util import run_wsgi_app
 import web
 import game
 import game.gameManagement
@@ -5,7 +6,7 @@ import game.gameBoardHex
 import uuid
         
 urls = (
-    '/HH/Debug/(.*)/(.*)/(\d*,\d*)', 'HoneyHuntersDebug',
+    '/HH/Debug/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersDebug',
     '/HH/Status/(.*)/(.*)', 'HoneyHuntersGameStatus',
     '/HH/Move/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersMove',
     '/HH/SetupHex/(.*)/(.*)', 'HoneyHuntersSetupHexGame',
@@ -16,14 +17,14 @@ app = web.application(urls, globals())
 games = game.gameManagement.GameManagement()
 
 class HoneyHuntersDebug:        
-    def GET(self, game, playerId, move):
+    def GET(self, game, playerId, x, y):
         #if not game: 
         #    game = -1
         #if not playerId:
         #    playerId = -2
         #if not move:
         #    move = -3
-        return 'Game: \'' + str(game) + '\'\nPlayer: \'' + str(playerId) + '\'' + '\nMove: \'' + str(move) + '\''
+        return 'Game: \'' + str(game) + '\'\nPlayer: \'' + str(playerId) + '\'' + '\nMove: \'' + str((x, y)) + '\''
         
 class HoneyHuntersTotalGames:        
     def GET(self):
@@ -69,5 +70,10 @@ class HoneyHuntersSetupHexGame:
                 return playerId
         return False
 
-if __name__ == "__main__":
-    app.run()
+def main():
+    application = app.wsgifunc()
+    run_wsgi_app(application)
+
+if __name__ == '__main__':
+    main()
+    #app.run()
