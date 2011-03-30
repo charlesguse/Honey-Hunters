@@ -51,7 +51,7 @@ class HoneyHuntersMove:
         if games.Validate(gameId, playerId) == False or not x or not y:
             return False
         currentGame = games.GetGame(gameId)
-        return currentGame.MakeMove(playerId, x, y)     
+        return currentGame.MakeMove(playerId, int(x), int(y))     
 
 class HoneyHuntersSetupHexGame:        
     def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
