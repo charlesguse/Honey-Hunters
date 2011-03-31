@@ -1,9 +1,10 @@
 from google.appengine.ext.webapp.util import run_wsgi_app
 import web
+import simplejson as json
 import game
 import game.gameManagement
 import game.gameBoardHex
-import uuid
+import uuid                                 
         
 urls = (
     '/HH/Debug/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersDebug',
@@ -12,11 +13,19 @@ urls = (
     '/HH/SetupHex/(.*)/(.*)', 'HoneyHuntersSetupHexGame',
     '/HH/SetupHex/(.*)', 'HoneyHuntersSetupHexGame',
     '/HH/TotalGames', 'HoneyHuntersTotalGames',
+    '/', 'FacePalm'
 )
 app = web.application(urls, globals())
 games = game.gameManagement.GameManagement()
 
-class HoneyHuntersDebug:        
+def jsonDump(func):
+    def jsonizeFunc(*args, **kwargs):
+        return json.dumps(func(*args, **kwargs))
+    return jsonizeFunc
+
+
+class HoneyHuntersDebug:
+    @jsonDump      
     def GET(self, game, playerId, x, y):
         #if not game: 
         #    game = -1
@@ -24,39 +33,45 @@ class HoneyHuntersDebug:
         #    playerId = -2
         #if not move:
         #    move = -3
-        return 'Game: \'' + str(game) + '\'\nPlayer: \'' + str(playerId) + '\'' + '\nMove: \'' + str((x, y)) + '\''
+        return {'Game' : game, 'Player' : playerId, 'Move' : (int(x), int(y))}
         
-class HoneyHuntersTotalGames:        
+class HoneyHuntersTotalGames:
+    @jsonDump      
     def GET(self):
-        return len(games.games)
+        return {'TotalGames' : len(games.games)}
         
-class HoneyHuntersGameStatus:        
+class HoneyHuntersGameStatus:
+    @jsonDump        
     def GET(self, gameId, playerId):
         if games.Validate(gameId, playerId) == False:
-            return False
+            return {'GameStatus' : False}
         try:
             currentGame = games.GetGame(gameId)
             return {
+                'GameStatus' : True,
                 'Turn' : currentGame.PlayersTurn(playerId),
                 currentGame.GetPlayerName(playerId) : currentGame.GetPlayerScore(playerId),
                 currentGame.GetOtherPlayerName(playerId) : currentGame.GetOtherPlayerScore(playerId),
                 'Board' : currentGame.displayBoard,
-                'Winner' : currentGame.CheckWinner(playerId)
+                'Winner' : currentGame.CheckWinner(playerId),
+                'GameType' : currentGame.__class__.__name__ 
             }
         except KeyError:
-            return False
+            return {'GameStatus' : False}
 
-class HoneyHuntersMove:        
+class HoneyHuntersMove:
+    @jsonDump       
     def GET(self, gameId, playerId, x, y):
         if games.Validate(gameId, playerId) == False or not x or not y:
-            return False
+            return {'MoveMade' : False}
         currentGame = games.GetGame(gameId)
-        return currentGame.MakeMove(playerId, int(x), int(y))     
+        return {'MoveMade' : currentGame.MakeMove(playerId, int(x), int(y))}     
 
-class HoneyHuntersSetupHexGame:        
+class HoneyHuntersSetupHexGame:
+    @jsonDump       
     def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
         if not gameId: 
-            return False
+            return {'SetupHex' : False}
         if not name:
             name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET
         if games.GameExists(gameId) == False:
@@ -67,8 +82,13 @@ class HoneyHuntersSetupHexGame:
         if currentGame.PlayersExist() == False:
             playerId = str(uuid.uuid4())
             if currentGame.SetPlayer(playerId, name):
-                return playerId
-        return False
+                return {'SetupHex' : True, 'PlayerId' : playerId}
+        return {'SetupHex' : False}
+        
+class FacePalm:
+    def GET(self):
+        print "hi"
+        return "............................................________\n....................................,.-'\"...................``~.,\n.............................,.-\"...................................\"-.,\n.........................,/...............................................\":,\n.....................,?......................................................,\n.................../...........................................................,} \n................/......................................................,:`^`..}\n.............../...................................................,:\"........./\n..............?.....__.........................................:`.........../\n............./__.(.....\"~-,_..............................,:`........../\n.........../(_....\"~,_........\"~,_....................,:`........_/\n..........{.._$;_......\"=,_.......\"-,_.......,.-~-,},.~\";/....}\n...........((.....*~_.......\"=-._......\";,,./`..../\"............../\n...,,,___.`~,......\"~.,....................`.....}............../\n............(....`=-,,.......`........................(......;_,,-\"\n............/.`~,......`-...................................../       \n.............`~.*-,.....................................|,./.....,__\n,,_..........}.>-._...................................|..............`=~-,\n.....`=~-,__......`,.................................\n...................`=~-,,.,...............................\n................................`:,,...........................`..............__\n.....................................`=-,...................,%`>--==``\n........................................_..........._,-%.......`\n..................................., "
 
 def main():
     application = app.wsgifunc()
