@@ -50,8 +50,10 @@ class HoneyHuntersGameStatus:
             return {
                 'GameStatus' : True,
                 'Turn' : currentGame.PlayersTurn(playerId),
-                currentGame.GetPlayerName(playerId) : currentGame.GetPlayerScore(playerId),
-                currentGame.GetOtherPlayerName(playerId) : currentGame.GetOtherPlayerScore(playerId),
+                'PlayerName' : currentGame.GetPlayerName(playerId),
+                'PlayerScore' : currentGame.GetPlayerScore(playerId),
+                'OpponentName' : currentGame.GetOtherPlayerName(playerId),
+                'OpponentScore' : currentGame.GetOtherPlayerScore(playerId),
                 'Board' : currentGame.displayBoard,
                 'Winner' : currentGame.CheckWinner(playerId),
                 'GameType' : currentGame.__class__.__name__ 
