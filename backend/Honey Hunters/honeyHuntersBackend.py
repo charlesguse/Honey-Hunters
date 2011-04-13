@@ -5,6 +5,8 @@ import game
 import game.gameManagement
 import game.gameBoardHex
 import uuid                                 
+
+accessControlAllowOriginValue = "*" #"http://nonegames.net"
         
 urls = (
     '/HH/Debug/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersDebug',
@@ -12,8 +14,7 @@ urls = (
     '/HH/Move/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersMove',
     '/HH/SetupHex/(.*)/(.*)', 'HoneyHuntersSetupHexGame',
     '/HH/SetupHex/(.*)', 'HoneyHuntersSetupHexGame',
-    '/HH/TotalGames', 'HoneyHuntersTotalGames',
-    '/', 'FacePalm'
+    '/HH/TotalGames', 'HoneyHuntersTotalGames'
 )
 app = web.application(urls, globals())
 games = game.gameManagement.GameManagement()
@@ -23,10 +24,10 @@ def jsonDump(func):
         return json.dumps(func(*args, **kwargs))
     return jsonizeFunc
 
-
 class HoneyHuntersDebug:
     @jsonDump      
     def GET(self, game, playerId, x, y):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         #if not game: 
         #    game = -1
         #if not playerId:
@@ -38,11 +39,13 @@ class HoneyHuntersDebug:
 class HoneyHuntersTotalGames:
     @jsonDump      
     def GET(self):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         return {'TotalGames' : len(games.games)}
         
 class HoneyHuntersGameStatus:
     @jsonDump        
     def GET(self, gameId, playerId):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if games.Validate(gameId, playerId) == False:
             return {'GameStatus' : False}
         try:
@@ -64,6 +67,7 @@ class HoneyHuntersGameStatus:
 class HoneyHuntersMove:
     @jsonDump       
     def GET(self, gameId, playerId, x, y):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if games.Validate(gameId, playerId) == False or not x or not y:
             return {'MoveMade' : False}
         currentGame = games.GetGame(gameId)
@@ -72,8 +76,9 @@ class HoneyHuntersMove:
 class HoneyHuntersSetupHexGame:
     @jsonDump       
     def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if not gameId: 
-            return {'SetupHex' : False}
+            return {'Setup' : False}
         if not name:
             name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET
         if games.GameExists(gameId) == False:
@@ -84,14 +89,9 @@ class HoneyHuntersSetupHexGame:
         if currentGame.PlayersExist() == False:
             playerId = str(uuid.uuid4())
             if currentGame.SetPlayer(playerId, name):
-                return {'SetupHex' : True, 'PlayerId' : playerId}
-        return {'SetupHex' : False}
+                return {'Setup' : True, 'PlayerId' : playerId}
+        return {'Setup' : False}
         
-class FacePalm:
-    def GET(self):
-        print "hi"
-        return "............................................________\n....................................,.-'\"...................``~.,\n.............................,.-\"...................................\"-.,\n.........................,/...............................................\":,\n.....................,?......................................................,\n.................../...........................................................,} \n................/......................................................,:`^`..}\n.............../...................................................,:\"........./\n..............?.....__.........................................:`.........../\n............./__.(.....\"~-,_..............................,:`........../\n.........../(_....\"~,_........\"~,_....................,:`........_/\n..........{.._$;_......\"=,_.......\"-,_.......,.-~-,},.~\";/....}\n...........((.....*~_.......\"=-._......\";,,./`..../\"............../\n...,,,___.`~,......\"~.,....................`.....}............../\n............(....`=-,,.......`........................(......;_,,-\"\n............/.`~,......`-...................................../       \n.............`~.*-,.....................................|,./.....,__\n,,_..........}.>-._...................................|..............`=~-,\n.....`=~-,__......`,.................................\n...................`=~-,,.,...............................\n................................`:,,...........................`..............__\n.....................................`=-,...................,%`>--==``\n........................................_..........._,-%.......`\n..................................., "
-
 def main():
     application = app.wsgifunc()
     run_wsgi_app(application)
