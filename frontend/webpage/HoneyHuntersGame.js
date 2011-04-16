@@ -113,8 +113,7 @@ HoneyHuntersGame.prototype.onClick = function(e) {
   var currentPlayerId = (this.localPlayersTurn) ? this.localPlayerId : this.remotePlayerId;
   var response = srv.submitMove(currentPlayerId, hex.x, hex.y);
   
-  this.update();
-  this.draw();
+  this.runGame();
 }
 
 HoneyHuntersGame.prototype.wireEvents = function() {
@@ -172,10 +171,16 @@ HoneyHuntersGame.prototype.draw = function() {
     }
   }
   
-  $("#playerOne")[0].innerHTML = this.localPlayerName;
+  $("#playerOne")[0].innerHTML = this.localPlayerName;  
   $("#playerTwo")[0].innerHTML = (this.remotePlayerName != "" && this.remotePlayerName != null) ? this.remotePlayerName : "Opponent";
   $("#playerOneScore")[0].innerHTML = this.localPlayerScore;
   $("#playerTwoScore")[0].innerHTML = this.remotePlayerScore;
+  $("#gameMessage")[0].innerHTML = (this.localPlayersTurn) ? "Your turn!" : "Waiting for opponent to move...";
+  
+  var boldPlayer = (this.localPlayersTurn) ? "#playerOne" : "#playerTwo";
+  var normPlayer = (this.localPlayersTurn) ? "#playerTwo" : "#playerOne";
+  $(boldPlayer)[0].style.fontWeight = "bold";
+  $(normPlayer)[0].style.fontWeight = "normal";
 }
 
 HoneyHuntersGame.prototype.startGame = function(e) {
@@ -189,17 +194,18 @@ HoneyHuntersGame.prototype.startGame = function(e) {
   else
     alert("Remote game setup failed");
     
-  gameData = srv.setupGame();
+  /*gameData = srv.setupGame();
   if (gameData.Setup)
     this.remotePlayerId = gameData.PlayerId;
   else
-    alert("Second player setup failed");
+    alert("Second player setup failed");*/
   
   this.runGame();
+  //if (this.localPlayersTurn)
+    setInterval(function(context) { context.runGame(); }, 2000, this);
 }
 
 HoneyHuntersGame.prototype.runGame = function() {
   this.update();
-  
   this.draw();
 }
