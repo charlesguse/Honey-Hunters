@@ -5,10 +5,19 @@
 
 function HoneyHuntersGame () {
   this.oRes = new ResourceConfig();
+  
+  this.boardWidth = 16;
+  this.boardHeight = 16;
   this.aBoard = new Array();
   this.aBoardCenters = new Array();
   
-  this.nScaleFactor = 1.0;
+  this.gameId = null;
+  this.localPlayerId = null;
+  this.localPlayerName = null;
+  this.remotePlayerId = null;
+  this.remotePlayerName = null;
+  
+  this.nScaleFactor = 0.2;
   this.imgCellEmpty = new Image();
   this.imgCellHoney = new Image();
   this.imgCellHidden = new Image();
@@ -18,18 +27,21 @@ function HoneyHuntersGame () {
   this.screenWidth = 0;
   this.screenHieght = 0;
   
+  this.currentPlayer = 0;
+  
+  this.serviceUrl = "http://nonegames.appspot.com/HH";
   this.ctx = null;
 }
 
 HoneyHuntersGame.prototype.initGame = function() {
-  this.loadResources();
   this.loadEnvironmentData();
+  this.loadResources();
   this.loadGameData();
   
   while (this.nImagesToLoad < this.nImagesLoaded) { }
   
+  this.addControls();
   this.wireEvents();
-  this.runGame();
 }
 
 HoneyHuntersGame.prototype.imageLoaded = function() {
@@ -54,16 +66,15 @@ HoneyHuntersGame.prototype.loadEnvironmentData = function() {
   this.screenHeight = parseInt($("#honeyHuntersCanvas").attr("height"));
 }
 
-HoneyHuntersGame.prototype.loadGameData = function() {
-  this.aBoard = [[-2,3,-1],[2,-1,-2],[-1,-2,3],[-2,4,-1]];
-  this.aBoardCenters = [[],[],[],[]];
-  
+HoneyHuntersGame.prototype.loadGameData = function() {  
   var cellWidth = this.imgCellEmpty.width * this.nScaleFactor;
   var cellHeight = this.imgCellEmpty.height * this.nScaleFactor;
   var cellCenterX = 0;
   var cellCenterY = 0;
-  for (var i=0; i<this.aBoard.length; i++) {
-    for (var j=0; j<this.aBoard[i].length; j++) {
+  
+  for (var i=0; i<this.boardWidth; i++) {
+    this.aBoardCenters[i] = new Array();
+    for (var j=0; j<this.boardHeight; j++) {
       cellCenterX = cellWidth * (i * 0.75 + 0.5);
       cellCenterY = cellHeight * (j + 0.5);
       if (!(i % 2)) {
@@ -88,7 +99,7 @@ HoneyHuntersGame.prototype.findNearestCenter = function(x, y) {
       dist = lineLength(x, y, this.aBoardCenters[i][j].x, this.aBoardCenters[i][j].y);
       if (dist < minDistance) {
         minDistance = dist;
-        best = {"i":i, "j":j};
+        best = {"x":i, "y":j};
       }
     }
   }
@@ -97,16 +108,35 @@ HoneyHuntersGame.prototype.findNearestCenter = function(x, y) {
 }
 
 HoneyHuntersGame.prototype.onClick = function(e) {
-  var hex = e.data.findNearestCenter(e.offsetX,e.offsetY);
-  var clickX = e.data.aBoardCenters[hex.i][hex.j].x;
-  var clickY = e.data.aBoardCenters[hex.i][hex.j].y;
-  e.data.ctx.fillRect(clickX-10, clickY-10, 20, 20);
+  var srv = new HHService(this.serviceUrl, this.gameId);
+  var hex = this.findNearestCenter(e.offsetX,e.offsetY);
+  var currentPlayerId = (this.localPlayersTurn) ? this.localPlayerId : this.remotePlayerId;
+  var response = srv.submitMove(currentPlayerId, hex.x, hex.y);
+  
+  this.update();
+  this.draw();
 }
 
 HoneyHuntersGame.prototype.wireEvents = function() {
-  $("#honeyHuntersCanvas").bind('click', this, this.onClick);
+  $("#honeyHuntersCanvas").bind('click', jQuery.proxy(this, 'onClick'));//this, this.onClick);
+  $("#startButton").bind('click', jQuery.proxy(this, 'startGame'));//this, this.startGame);
 }
 
+
+HoneyHuntersGame.prototype.addControls = function() {
+  var cp = $("#controlPanel");
+}
+
+HoneyHuntersGame.prototype.update = function() {
+  var srv = new HHService(this.serviceUrl, this.gameId);
+  var gameData = srv.getGameState(this.localPlayerId);
+  
+  this.aBoard = gameData.Board;
+  this.localPlayersTurn = gameData.Turn;
+  this.localPlayerScore = gameData.PlayerScore;
+  this.remotePlayerScore = gameData.OpponentScore;
+}
+  
 HoneyHuntersGame.prototype.draw = function() {
   var cellWidth = this.imgCellEmpty.width * this.nScaleFactor;
   var cellHeight = this.imgCellEmpty.height * this.nScaleFactor;
@@ -117,7 +147,6 @@ HoneyHuntersGame.prototype.draw = function() {
   var cellImage;
   
   this.ctx.clearRect(0,0,this.screenWidth,this.screenHeight);
-  //this.ctx.save();
   this.ctx.font = fontSize + "px Comic Sans";
   for (var i=0; i<this.aBoard.length; i++) {
     for (var j=0; j<this.aBoard[i].length; j++) {
@@ -142,8 +171,35 @@ HoneyHuntersGame.prototype.draw = function() {
       this.ctx.fillText(cellText, this.aBoardCenters[i][j].x - (fontSize*0.25), this.aBoardCenters[i][j].y + (fontSize*0.25))
     }
   }
+  
+  $("#playerOne")[0].innerHTML = this.localPlayerName;
+  $("#playerTwo")[0].innerHTML = (this.remotePlayerName != "" && this.remotePlayerName != null) ? this.remotePlayerName : "Opponent";
+  $("#playerOneScore")[0].innerHTML = this.localPlayerScore;
+  $("#playerTwoScore")[0].innerHTML = this.remotePlayerScore;
+}
+
+HoneyHuntersGame.prototype.startGame = function(e) {
+  this.gameId = $("#gameName")[0].value;
+  this.localPlayerName = $("#playerName")[0].value;
+  
+  var srv = new HHService(this.serviceUrl, this.gameId);
+  var gameData = srv.setupGame(this.localPlayerName);
+  if (gameData.Setup)
+    this.localPlayerId = gameData.PlayerId;
+  else
+    alert("Remote game setup failed");
+    
+  gameData = srv.setupGame();
+  if (gameData.Setup)
+    this.remotePlayerId = gameData.PlayerId;
+  else
+    alert("Second player setup failed");
+  
+  this.runGame();
 }
 
 HoneyHuntersGame.prototype.runGame = function() {
+  this.update();
+  
   this.draw();
 }

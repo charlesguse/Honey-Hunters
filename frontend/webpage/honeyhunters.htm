@@ -3,13 +3,22 @@
 <head>
   <title>Honey Hunters Prototype</title> 
   <script language="javascript" src="http://code.jquery.com/jquery-1.4.2.js" ></script>
+  <script type="text/javascript" src="HHService.js"></script>
   <script type="text/javascript" src="ResourceConfig.js"></script>
   <script type="text/javascript" src="HoneyHuntersGame.js"></script>
 </head>
 <body onLoad="var game = new HoneyHuntersGame;game.initGame(); ">
   <!--<img id="empty" src="empty.png">-->
-  <div id="container" style="border:1px solid; width:800px; height:600px;">
-    <canvas id="honeyHuntersCanvas" width="800px" height="600px">Sorry, your browser doesn't support canvas.</canvas>
+  <div id="container" style="width:1000px; height:600px;">
+    <canvas id="honeyHuntersCanvas" width="800px" height="600px" style="border:1px solid; float:left;">Sorry, your browser doesn't support canvas.</canvas>
+    <div id="controlPanel" style="float: right; width:175px; height: 300px; border: 1px solid; margin-top: 25px; background-color: #EEE;">
+      <div>Game Identifier<br/><input id="gameName" /></div>
+      <div>Player Name (Optional)<br/><input id="playerName" /></div>
+      <div><input id="startButton" value="Start Game" type="button"/></div>
+      <div><span id="playerOne"></span>&nbsp;<span id="playerOneScore"></span></div>
+      <div><span id="playerTwo"></span>&nbsp;<span id="playerTwoScore"></span></div>
+    </div>
+  
   </div>
 </body>
 </html>
