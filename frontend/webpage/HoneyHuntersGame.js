@@ -110,7 +110,6 @@ HoneyHuntersGame.prototype.loadGameData = function() {
       if (!(i % 2)) {
         cellCenterY += 0.5 * cellHeight;
       }
-      //alert("i:" + i + " j:" + j + " x:" + cellCenterX + " y:" + cellCenterY);
       this.boardCenters[i][j] = {"x":cellCenterX, "y":cellCenterY}; 
     }
   }
@@ -142,10 +141,24 @@ HoneyHuntersGame.prototype.onClick = function(e) {
 }
 
 HoneyHuntersGame.prototype.wireEvents = function() {
-  $("#honeyHuntersCanvas").bind('click', jQuery.proxy(this, 'onClick'));//this, this.onClick);
-  $("#startButton").bind('click', jQuery.proxy(this, 'startGame'));//this, this.startGame);
+  $("#honeyHuntersCanvas").bind('click', jQuery.proxy(this, 'onClick'));
+  $("#startButton").bind('click', jQuery.proxy(this, 'startGame'));
+  
+  $("#gameName").bind('keyup', jQuery.proxy(this, 'onKeyup'));
+  $("#playerName").bind('keyup', jQuery.proxy(this, 'onKeyup'));
+  
+  $("#gameName").focus();
 }
 
+HoneyHuntersGame.prototype.onKeyup = function(e) {
+  var code = (e.keyCode ? e.keyCode : e.which);
+  if(code == 13) { //Enter keycode
+    $("#gameName").unbind();
+    $("#playerName").unbind();
+    this.startGame(e);
+  }
+  
+}
 
 HoneyHuntersGame.prototype.addControls = function() {
   var cp = $("#controlPanel");
@@ -154,7 +167,7 @@ HoneyHuntersGame.prototype.addControls = function() {
 HoneyHuntersGame.prototype.getGameState = function() {
   var srv = new HHService(this.serviceUrl, this.gameId);
   var gameData = srv.getGameState(this.localPlayerId);
-  //alert("GameStatus: " + gameData.GameStatus);
+
   if (gameData.GameStatus == true) {
     this.board = gameData.Board;
     this.gameStart = gameData.GameStart;
@@ -168,12 +181,8 @@ HoneyHuntersGame.prototype.getGameState = function() {
     this.totalHoney = gameData.TotalHoney;
   }
 
-  if (this.gameover == true){
-    var msg = (this.winner) ? "Congratulations, you won!" : "You lost :(";
-    this.endGame(msg);
-  }
-  else if (gameData.GameStatus == false) {
-    var msg = "Game could not be found";
+  if (gameData.GameStatus == false) {
+    var msg = "Something be broke on the game. Sorry!";
     this.endGame(msg);
   }
 }
@@ -270,7 +279,7 @@ HoneyHuntersGame.prototype.draw = function() {
   $("#playerTwoScore")[0].innerHTML = this.remotePlayerScore;
   $("#honey")[0].innerHTML = "You need " + (Math.floor(this.totalHoney / 2) + 1 - this.localPlayerScore) + " honey to win.";
   if (this.gameStart == false) {
-    $("#gameMessage")[0].innerHTML = "Waiting for opponent to join game.";
+    $("#gameMessage")[0].innerHTML = "Waiting for opponent to join game.<br/>Give your friend the game identifier.";
     $("#gameMessage")[0].style.fontWeight = "bold";
     $("#playerOne")[0].style.fontWeight = "normal";
     $("#playerTwo")[0].style.fontWeight = "normal";
@@ -280,6 +289,9 @@ HoneyHuntersGame.prototype.draw = function() {
     $("#gameMessage")[0].style.fontWeight = "bold";
     $("#playerOne")[0].style.fontWeight = "normal";
     $("#playerTwo")[0].style.fontWeight = "normal";
+    
+    var msg = (this.winner) ? "Congratulations, you won!" : "You lost :(";
+    this.endGame(msg);
   }
   else {
     $("#gameMessage")[0].innerHTML = (this.localPlayersTurn) ? "Your turn!" : "Waiting for opponent to move...";
