@@ -47,13 +47,16 @@ class HoneyHuntersGameStatus:
         else:
             return {
                 'GameStatus' : True,
+                'GameStart' : currentGame.PlayersExist(),
                 'Turn' : currentGame.PlayersTurn(playerId),
                 'PlayerName' : currentGame.GetPlayerName(playerId),
                 'PlayerScore' : currentGame.GetPlayerScore(playerId),
                 'OpponentName' : currentGame.GetOtherPlayerName(playerId),
                 'OpponentScore' : currentGame.GetOtherPlayerScore(playerId),
                 'Board' : currentGame.displayBoard,
+                'GameOver' : currentGame.CheckGameOver(),
                 'Winner' : currentGame.CheckWinner(playerId),
+                'TotalHoney' : currentGame.TotalHoney(), 
                 'GameType' : currentGame.__class__.__name__ 
             }
             
@@ -65,15 +68,19 @@ class HoneyHuntersGameStatusDebug:
         if games.Validate(currentGame) == False:
             return {'GameStatus' : False}
         else:
+            playerId = currentGame.playerOne
             return {
                 'GameStatus' : True,
-                'Turn' : currentGame.PlayersTurn(currentGame.playerOne),
-                'PlayerName' : currentGame.GetPlayerName(currentGame.playerOne),
-                'PlayerScore' : currentGame.GetPlayerScore(currentGame.playerOne),
-                'OpponentName' : currentGame.GetOtherPlayerName(currentGame.playerTwo),
-                'OpponentScore' : currentGame.GetOtherPlayerScore(currentGame.playerTwo),
+                'GameStart' : currentGame.PlayersExist(),
+                'Turn' : currentGame.PlayersTurn(playerId),
+                'PlayerName' : currentGame.GetPlayerName(playerId),
+                'PlayerScore' : currentGame.GetPlayerScore(playerId),
+                'OpponentName' : currentGame.GetOtherPlayerName(playerId),
+                'OpponentScore' : currentGame.GetOtherPlayerScore(playerId),
                 'Board' : currentGame.displayBoard,
-                'Winner' : currentGame.CheckWinner(currentGame.playerOne),
+                'GameOver' : currentGame.CheckGameOver(),
+                'Winner' : currentGame.CheckWinner(playerId),
+                'TotalHoney' : currentGame.TotalHoney(), 
                 'GameType' : currentGame.__class__.__name__ 
             }
 

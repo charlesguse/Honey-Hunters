@@ -32,20 +32,18 @@ class GameBoardBase:
     
     def AddHoneyToTile(self, arr, x, y):
         raise NotImplementedError("Subclass must implement abstract method")
-        
+
+    def CheckGameOver(self):
+        return (self.playerOneScore > (self.TotalHoney() / 2)) or (self.playerTwoScore > (self.TotalHoney() / 2))
+
     def CheckWinner(self, playerId):
         if self.PlayerExists(playerId) == False:
             return False
+            
         if self.playerOneScore > self.TotalHoney() / 2:
-            if self.playerOne == playerId:
-                return self.GetPlayerName(playerId)
-            else:
-                return self.GetOtherPlayerName(playerId)
+            return self.playerOne == playerId
         elif self.playerTwoScore > self.TotalHoney() / 2:
-            if self.playerTwo == playerId:
-                return self.GetPlayerName(playerId)
-            else:
-                return self.GetOtherPlayerName(playerId)
+            return self.playerTwo == playerId
         else:
             return False 
 

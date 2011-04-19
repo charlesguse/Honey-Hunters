@@ -67,10 +67,10 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(gameBoard.playerTwoName, 'two')
         
     def testBoardSize(self):
-        self.assertEqual(self.baseLogic.BoardSize(), (16, 16))
+        self.assertEqual(self.baseLogic.BoardSize(), (13, 13))
     
     def testTotalHoney(self):
-        self.assertEqual(self.baseLogic.TotalHoney(), 51)
+        self.assertEqual(self.baseLogic.TotalHoney(), 31)
 
     def testCheckPlayerIds(self):
         self.assertEqual(self.baseLogic.playerOne, 1)
@@ -451,23 +451,27 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(game.playersTurn, game.playerOne)
 
     def testCheckWinner(self):
+        self.assertFalse(self.baseLogic.CheckGameOver())
         self.assertFalse(self.baseLogic.CheckWinner(1))
         self.assertFalse(self.baseLogic.CheckWinner('a'))
         
         self.baseLogic.playerOneScore = int(self.baseLogic.TotalHoney() / 2)
         self.baseLogic.playerTwoScore = int(self.baseLogic.TotalHoney() / 2)
+        self.assertFalse(self.baseLogic.CheckGameOver())
         self.assertFalse(self.baseLogic.CheckWinner(1))
         self.assertFalse(self.baseLogic.CheckWinner('a'))
         
         self.baseLogic.playerOneScore = int(self.baseLogic.TotalHoney() / 2) + 1
         self.baseLogic.playerTwoScore = int(self.baseLogic.TotalHoney() / 2)
-        self.assertEqual(self.baseLogic.CheckWinner(1), "You")
-        self.assertEqual(self.baseLogic.CheckWinner('a'), "Opponent")
+        self.assertTrue(self.baseLogic.CheckGameOver())
+        self.assertTrue(self.baseLogic.CheckWinner(1))
+        self.assertFalse(self.baseLogic.CheckWinner('a'))
         
         self.baseLogic.playerOneScore = int(self.baseLogic.TotalHoney() / 2)
         self.baseLogic.playerTwoScore = int(self.baseLogic.TotalHoney() / 2) + 1
-        self.assertEqual(self.baseLogic.CheckWinner(1), "Opponent")
-        self.assertEqual(self.baseLogic.CheckWinner('a'), "You")
+        self.assertTrue(self.baseLogic.CheckGameOver())
+        self.assertFalse(self.baseLogic.CheckWinner(1))
+        self.assertTrue(self.baseLogic.CheckWinner('a'))
         
     def testCheckWinnerThatDoesNotExist(self):
         self.assertFalse(self.baseLogic.CheckWinner(123123))
