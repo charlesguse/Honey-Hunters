@@ -10,6 +10,7 @@ accessControlAllowOriginValue = "*" #"http://nonegames.net"
         
 urls = (
     '/HH/Status/(.*)/(.*)', 'HoneyHuntersGameStatus',
+    '/HH/Status/(.*)', 'HoneyHuntersGameStatusDebug',
     '/HH/Move/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersMove',
     '/HH/SetupHex/(.*)/(.*)', 'HoneyHuntersSetupHexGame',
     '/HH/SetupHex/(.*)', 'HoneyHuntersSetupHexGame',
@@ -55,6 +56,26 @@ class HoneyHuntersGameStatus:
                 'Winner' : currentGame.CheckWinner(playerId),
                 'GameType' : currentGame.__class__.__name__ 
             }
+            
+class HoneyHuntersGameStatusDebug:
+    @jsonDump        
+    def GET(self, gameId):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
+        currentGame = games.GetGame(gameId)
+        if games.Validate(currentGame) == False:
+            return {'GameStatus' : False}
+        else:
+            return {
+                'GameStatus' : True,
+                'Turn' : currentGame.PlayersTurn(currentGame.playerOne),
+                'PlayerName' : currentGame.GetPlayerName(currentGame.playerOne),
+                'PlayerScore' : currentGame.GetPlayerScore(currentGame.playerOne),
+                'OpponentName' : currentGame.GetOtherPlayerName(currentGame.playerTwo),
+                'OpponentScore' : currentGame.GetOtherPlayerScore(currentGame.playerTwo),
+                'Board' : currentGame.displayBoard,
+                'Winner' : currentGame.CheckWinner(currentGame.playerOne),
+                'GameType' : currentGame.__class__.__name__ 
+            }
 
 class HoneyHuntersMove:
     @jsonDump       
@@ -64,8 +85,10 @@ class HoneyHuntersMove:
         if games.Validate(currentGame, playerId) == False or not x or not y:
             return {'MoveMade' : False}
         else:
-            games.UpdateGame(gameId, currentGame)
-            return {'MoveMade' : currentGame.MakeMove(playerId, int(x), int(y))}     
+            moveMade = currentGame.MakeMove(playerId, int(x), int(y))
+            if moveMade == True:
+                moveMade = games.UpdateGame(gameId, currentGame)
+            return {'MoveMade' : moveMade}     
 
 class HoneyHuntersSetupHexGame:
     @jsonDump       

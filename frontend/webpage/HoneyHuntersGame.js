@@ -2,14 +2,17 @@
   var game = new HoneyHuntersGame;
   game.initGame(); 
 });*/
+var SERVICECALL_TIMER = 2000;
+var TARGET_FRAMERATE = 60;
 
 function HoneyHuntersGame () {
   this.oRes = new ResourceConfig();
   
   this.boardWidth = 16;
   this.boardHeight = 16;
-  this.aBoard = new Array();
-  this.aBoardCenters = new Array();
+  this.board = new Array();
+  this.previousBoard = new Array();
+  this.boardCenters = new Array();
   
   this.gameId = null;
   this.localPlayerId = null;
@@ -27,10 +30,27 @@ function HoneyHuntersGame () {
   this.screenWidth = 0;
   this.screenHieght = 0;
   
+  this.lastFrame = 0;
+  
+  this.clickQueue = new Array();
+  
   this.currentPlayer = 0;
+  this.localPlayerScore = 0;
+  this.remotePlayerScore = 0;
+  
+  this.intervalId = 0;
   
   this.serviceUrl = "http://nonegames.appspot.com/HH";
+  this.lastServiceCall = 0;
   this.ctx = null;
+}
+
+HoneyHuntersGame.prototype.enqueueClick = function(item) {
+  this.clickQueue.push(item);
+}
+
+HoneyHuntersGame.prototype.dequeueClick = function() {
+  return this.clickQueue.shift();
 }
 
 HoneyHuntersGame.prototype.initGame = function() {
@@ -38,7 +58,7 @@ HoneyHuntersGame.prototype.initGame = function() {
   this.loadResources();
   this.loadGameData();
   
-  while (this.nImagesToLoad < this.nImagesLoaded) { }
+  //while (this.nImagesToLoad < this.nImagesLoaded) { }
   
   this.addControls();
   this.wireEvents();
@@ -73,15 +93,15 @@ HoneyHuntersGame.prototype.loadGameData = function() {
   var cellCenterY = 0;
   
   for (var i=0; i<this.boardWidth; i++) {
-    this.aBoardCenters[i] = new Array();
+    this.boardCenters[i] = new Array();
     for (var j=0; j<this.boardHeight; j++) {
       cellCenterX = cellWidth * (i * 0.75 + 0.5);
       cellCenterY = cellHeight * (j + 0.5);
       if (!(i % 2)) {
         cellCenterY += 0.5 * cellHeight;
       }
-      
-      this.aBoardCenters[i][j] = {"x":cellCenterX, "y":cellCenterY}; 
+      //alert("i:" + i + " j:" + j + " x:" + cellCenterX + " y:" + cellCenterY);
+      this.boardCenters[i][j] = {"x":cellCenterX, "y":cellCenterY}; 
     }
   }
 }
@@ -94,9 +114,9 @@ HoneyHuntersGame.prototype.findNearestCenter = function(x, y) {
   var best;
   var minDistance = Number.MAX_VALUE;
   var dist;
-  for (var i=0; i<this.aBoard.length; i++) {
-    for (var j=0; j<this.aBoard[i].length; j++) {
-      dist = lineLength(x, y, this.aBoardCenters[i][j].x, this.aBoardCenters[i][j].y);
+  for (var i=0; i<this.board.length; i++) {
+    for (var j=0; j<this.board[i].length; j++) {
+      dist = lineLength(x, y, this.boardCenters[i][j].x, this.boardCenters[i][j].y);
       if (dist < minDistance) {
         minDistance = dist;
         best = {"x":i, "y":j};
@@ -108,12 +128,8 @@ HoneyHuntersGame.prototype.findNearestCenter = function(x, y) {
 }
 
 HoneyHuntersGame.prototype.onClick = function(e) {
-  var srv = new HHService(this.serviceUrl, this.gameId);
-  var hex = this.findNearestCenter(e.offsetX,e.offsetY);
-  var currentPlayerId = (this.localPlayersTurn) ? this.localPlayerId : this.remotePlayerId;
-  var response = srv.submitMove(currentPlayerId, hex.x, hex.y);
-  
-  this.runGame();
+  this.enqueueClick({"x":e.offsetX, "y":e.offsetY});
+  //alert(" x:" + e.offsetX + " y:" + e.offsetY); 
 }
 
 HoneyHuntersGame.prototype.wireEvents = function() {
@@ -126,14 +142,60 @@ HoneyHuntersGame.prototype.addControls = function() {
   var cp = $("#controlPanel");
 }
 
-HoneyHuntersGame.prototype.update = function() {
+HoneyHuntersGame.prototype.getGameState = function() {
   var srv = new HHService(this.serviceUrl, this.gameId);
   var gameData = srv.getGameState(this.localPlayerId);
-  
-  this.aBoard = gameData.Board;
-  this.localPlayersTurn = gameData.Turn;
-  this.localPlayerScore = gameData.PlayerScore;
-  this.remotePlayerScore = gameData.OpponentScore;
+  //alert("GameStatus: " + gameData.GameStatus);
+  if (gameData.GameStatus == true) {
+    this.board = gameData.Board;
+    this.localPlayersTurn = gameData.Turn;
+    this.localPlayerScore = gameData.PlayerScore;
+    this.remotePlayerScore = gameData.OpponentScore;
+  }
+  else {
+    clearInterval(this.intervalId);
+    alert("Game could not be found");
+  }
+  //$("#gameMessage")[0].innerHTML = (this.localPlayersTurn) ? "Your turn!" : "Waiting for opponent to move...";
+  //$("#gameMessage")[0].innerHTML += "\nGameStatus: " + gameData.GameStatus;
+}
+
+HoneyHuntersGame.prototype.update = function() {
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////
+  if (this.localPlayersTurn) {
+    if (this.clickQueue.length > 0) {
+      var clickLoc = this.dequeueClick();
+      var hex = this.findNearestCenter(clickLoc.x,clickLoc.y);
+      //alert(" hex.x:" + hex.x + " hex.y:" + hex.y);
+      
+      var srv = new HHService(this.serviceUrl, this.gameId);
+      var response = srv.submitMove(this.localPlayerId, hex.x, hex.y);
+      //alert("MoveMade: " + response.MoveMade);
+      this.getGameState();
+    }
+  }
+  else {
+    while (this.clickQueue.length > 0) {
+      var throwaway = this.dequeueClick();
+    }
+    var currentTime = new Date().getTime();
+    var dt = currentTime - this.lastServiceCall;
+    
+    if (dt >= SERVICECALL_TIMER) {
+      this.lastServiceCall = currentTime;
+      
+      this.getGameState();
+    }
+  } 
 }
   
 HoneyHuntersGame.prototype.draw = function() {
@@ -147,15 +209,15 @@ HoneyHuntersGame.prototype.draw = function() {
   
   this.ctx.clearRect(0,0,this.screenWidth,this.screenHeight);
   this.ctx.font = fontSize + "px Comic Sans";
-  for (var i=0; i<this.aBoard.length; i++) {
-    for (var j=0; j<this.aBoard[i].length; j++) {
+  for (var i=0; i<this.board.length; i++) {
+    for (var j=0; j<this.board[i].length; j++) {
       cellX = i * cellWidth * 0.75 ;
       cellY = j * cellHeight;
       if (!(i % 2)) {
         cellY += 0.5 * cellHeight;
       }
       
-      switch(this.aBoard[i][j]) {
+      switch(this.board[i][j]) {
         case -2: cellImage = this.imgCellHidden;
           cellText = "";
           break;
@@ -163,11 +225,11 @@ HoneyHuntersGame.prototype.draw = function() {
           cellText = "";
           break;
         default: cellImage = this.imgCellEmpty;
-          cellText = this.aBoard[i][j];
+          cellText = this.board[i][j];
           break;
       }
       this.ctx.drawImage(cellImage, cellX, cellY, cellWidth, cellHeight);
-      this.ctx.fillText(cellText, this.aBoardCenters[i][j].x - (fontSize*0.25), this.aBoardCenters[i][j].y + (fontSize*0.25))
+      this.ctx.fillText(cellText, this.boardCenters[i][j].x - (fontSize*0.25), this.boardCenters[i][j].y + (fontSize*0.25))
     }
   }
   
@@ -192,20 +254,20 @@ HoneyHuntersGame.prototype.startGame = function(e) {
   if (gameData.Setup)
     this.localPlayerId = gameData.PlayerId;
   else
-    alert("Remote game setup failed");
-    
-  /*gameData = srv.setupGame();
-  if (gameData.Setup)
-    this.remotePlayerId = gameData.PlayerId;
-  else
-    alert("Second player setup failed");*/
+    alert("Game setup failed :(");
   
-  this.runGame();
-  //if (this.localPlayersTurn)
-    setInterval(function(context) { context.runGame(); }, 2000, this);
+  this.intervalId = setInterval(function (ctx) {ctx.runGame()}, 1000/TARGET_FRAMERATE, this);
 }
 
 HoneyHuntersGame.prototype.runGame = function() {
+  
+  //while(1) {
+    //var thisFrame = new Date().getTime();
+    //var dt = thisFrame - this.lastFrame;
+    
+    //if (dt >= 1000/TARGET_FRAMERATE) {
   this.update();
   this.draw();
+    //}
+  //}
 }

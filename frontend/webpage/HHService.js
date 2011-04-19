@@ -12,6 +12,7 @@ HHService.prototype.setupGame = function(playerName) {
   $.ajax({
     url: ajaxUrl,
     async: false,
+    cache: false,
     dataType: 'json',
     context: this,
     success: function(data) { this.lastReturnValue = data; }
@@ -26,6 +27,7 @@ HHService.prototype.getGameState = function(playerId) {
   $.ajax({
     url: ajaxUrl,
     async: false,
+    cache: false,
     dataType: 'json',
     context: this,
     success: function(data) { this.lastReturnValue = data; }
@@ -40,6 +42,7 @@ HHService.prototype.submitMove = function(playerId, x, y) {
   $.ajax({
     url: ajaxUrl,
     async: false,
+    cache: false,
     dataType: 'json',
     context: this,
     success: function(data) { this.lastReturnValue = data; }
