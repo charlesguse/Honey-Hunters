@@ -318,14 +318,6 @@ HoneyHuntersGame.prototype.startGame = function(e) {
 }
 
 HoneyHuntersGame.prototype.runGame = function() {
-  
-  //while(1) {
-    //var thisFrame = new Date().getTime();
-    //var dt = thisFrame - this.lastFrame;
-    
-    //if (dt >= 1000/TARGET_FRAMERATE) {
   this.update();
   this.draw();
-    //}
-  //}
 }
