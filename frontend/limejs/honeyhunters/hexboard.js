@@ -18,7 +18,6 @@ honeyhunters.EMPTY_SPOT = 0;
 honeyhunters.BOARD_SIZE_X = 13;
 honeyhunters.BOARD_SIZE_Y = 13;
 
-//honeyhunters.selected_tile = false;
 honeyhunters.boardLayer = false;
 honeyhunters.uiLayer = false;
 honeyhunters.yourScoreLabel = false;
@@ -37,7 +36,7 @@ honeyhunters.turn = true;
  * @constructor
  * @extends lime.Scene
  */
-honeyhunters.hexGame = function(){
+honeyhunters.HexBoard = function() {
 	lime.Scene.call(this);
 	
 	var x = honeyhunters.determineXPosition();
@@ -54,16 +53,15 @@ honeyhunters.hexGame = function(){
 	
 	honeyhunters.update();
 	lime.scheduleManager.scheduleWithDelay(honeyhunters.update, this, 2000)
-}
-goog.inherits(honeyhunters.hexGame, lime.Scene);
+};
+goog.inherits(honeyhunters.HexBoard, lime.Scene);
 
 honeyhunters.determineXPosition = function(){
 	var h = Math.cos(30 * (Math.PI/180)) * honeyhunters.HEX_SIDE_LENGTH;
 	var x = honeyhunters.HEX_SIDE_LENGTH * honeyhunters.BOARD_SIZE_X + h * (honeyhunters.BOARD_SIZE_X);
-	//alert("h: "+h+"\nx:"+x+"\nhoneyhunters.BOARD_SIZE_X:"+honeyhunters.BOARD_SIZE_X+"\nhoneyhunters.HEX_SIDE_LENGTH:"+honeyhunters.HEX_SIDE_LENGTH)
 	x = (honeyhunters.WIDTH - x) / 2;
 	return x;
-}
+};
 
 honeyhunters.setupUI= function(){
 	var uiBox = new lime.RoundedRect().setSize(400,110).setRadius(5).setFill(honeyhunters.EMPTY_COLOR).setPosition(120, 50).setOpacity(.5);
@@ -77,7 +75,7 @@ honeyhunters.setupUI= function(){
 	
 	var honeyLeftContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(honeyhunters.HONEY_COLOR).setPosition(240, 60);
 	honeyhunters.uiLayer.appendChild(honeyLeftContainer);
-}
+};
 
 honeyhunters.setupHexBoard = function(){
 	honeyhunters.display_board = new Array(honeyhunters.BOARD_SIZE_X);
@@ -99,7 +97,7 @@ honeyhunters.setupHexBoard = function(){
 			honeyhunters.boardLayer.appendChild(honeyhunters.display_board[x][y]);
 		}
 	}
-}
+};
 
 honeyhunters.update = function(){
 	var site = honeyhunters.BASE_SITE + "/Status/" + honeyhunters.gameId + "/" + honeyhunters.playerId
@@ -115,14 +113,9 @@ honeyhunters.update = function(){
 		}
 		
 		if (honeyhunters.game_state["Gameover"])
-		{
 			lime.scheduleManager.unschedule(honeyhunters.update);
-		}
-		//log('Received Json data object with title property of "' +  
-		//    obj['title'] + '"'); 
-		//alert(obj['content']);
   });
-}
+};
 
 honeyhunters.updateBoard = function(){
 	honeyhunters.board = honeyhunters.game_state["Board"]
@@ -144,7 +137,7 @@ honeyhunters.updateBoard = function(){
 			}
 		}
 	}
-}
+};
 
 honeyhunters.updateUI = function(){
 	honeyhunters.uiLayer.removeChild(honeyhunters.turnLabel);
@@ -152,7 +145,7 @@ honeyhunters.updateUI = function(){
 	{
 		honeyhunters.turnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
 	}
-	else if (honeyhunters.game_state["Gameover"])
+	else if (honeyhunters.game_state["GameOver"])
 	{
 		if (honeyhunters.game_state["Winner"])
 			honeyhunters.turnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold'); //.setFontColor(honeyhunters.YOUR_COLOR)
@@ -183,7 +176,7 @@ honeyhunters.updateUI = function(){
 	honeyhunters.uiLayer.removeChild(honeyhunters.honeyLeftLabel);
 	honeyhunters.honeyLeftLabel = new lime.Label().setText("Honey: " + honeyLeft).setFontSize(18).setPosition(240,60);
 	honeyhunters.uiLayer.appendChild(honeyhunters.honeyLeftLabel);
-}
+};
 
 honeyhunters.createHex = function(sideLength) {
 	var c = sideLength;
@@ -197,7 +190,7 @@ honeyhunters.createHex = function(sideLength) {
 					  2 * c, b,
 					  a + c, 2 * b,
 					  a , 2 * b);
-}
+};
 
 honeyhunters.getHexPosition = function(xArray, yArray) {
 	var s = honeyhunters.HEX_SIDE_LENGTH;
@@ -210,7 +203,7 @@ honeyhunters.getHexPosition = function(xArray, yArray) {
 		yPixel -= h;
 
 	return new goog.math.Coordinate(xPixel, yPixel);
-}
+};
 
 honeyhunters.placeHex = function(xArray,yArray) {
 	var hex = honeyhunters.createHex(honeyhunters.HEX_SIDE_LENGTH);
@@ -220,7 +213,7 @@ honeyhunters.placeHex = function(xArray,yArray) {
 	hex.setPosition(hexPosition);
 	
 	return hex;
-}
+};
 
 honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
 	var hex = honeyhunters.placeHex(xArray,yArray);
@@ -229,7 +222,7 @@ honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
 	var t = hex;
 	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) { // , 'touchmove'
 		// If the game status can not be determined or if it is not the players turn, or if the game is over, don't allow the player to click hexes
-		if (!honeyhunters.game_state["GameStatus"] || !honeyhunters.game_state["Turn"] || honeyhunters.game_state["Gameover"])
+		if (honeyhunters.game_state == undefined || !honeyhunters.game_state["GameStatus"] || !honeyhunters.game_state["Turn"] || honeyhunters.game_state["GameOver"])
 			return;
 		
 		hex.setFill(honeyhunters.SELECT_COLOR);
@@ -255,7 +248,7 @@ honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
 	   });
 	});
 	return hex;
-}
+};
 
 honeyhunters.makeMove = function(xArray, yArray) {
 	var site = honeyhunters.BASE_SITE + "/Move/" + honeyhunters.gameId + "/" + honeyhunters.playerId + "/" + xArray + "/" + yArray
@@ -264,15 +257,15 @@ honeyhunters.makeMove = function(xArray, yArray) {
 		//var xhr = e.target;
 		//honeyhunters.game_state = xhr.getResponseJson();
 		honeyhunters.update();
-  });
-}
+	});
+};
 
 honeyhunters.placeEmptyHex = function(number, xArray, yArray) {
 	var hex = honeyhunters.placeHex(xArray,yArray);
 	hex.setFill(honeyhunters.EMPTY_COLOR);
 	
 	return hex;
-}
+};
 
 honeyhunters.placeEmptyHexLabel = function(number, xArray, yArray) {
 	var label = new lime.Label().setText(number).setFontColor('#FFFFFF').setFontSize(18);
@@ -292,14 +285,14 @@ honeyhunters.placeEmptyHexLabel = function(number, xArray, yArray) {
 	label.setPosition(hexPosition);
 
 	return label;
-}
+};
 
 honeyhunters.placeHoneyHex = function(xArray,yArray) {
 	var hex = honeyhunters.placeHex(xArray,yArray);
 	hex.setFill(honeyhunters.HONEY_COLOR);
 	
 	return hex;
-}
+};
 
 honeyhunters.placeHexOfType =  function(type, xArray,yArray) {
 	var hex = false;
@@ -316,4 +309,4 @@ honeyhunters.placeHexOfType =  function(type, xArray,yArray) {
 			hex = honeyhunters.placeEmptyHex(type, xArray, yArray);
 	}
 	return hex;
-}
+};

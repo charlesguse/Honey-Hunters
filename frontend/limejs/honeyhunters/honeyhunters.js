@@ -26,7 +26,7 @@ honeyhunters.playerId = false;
 honeyhunters.start = function(){
 	honeyhunters.director = new lime.Director(document.body,honeyhunters.WIDTH,honeyhunters.HEIGHT);
 	honeyhunters.loadMenu();
-}
+};
 
 // load menu scene
 honeyhunters.loadMenu = function() {
@@ -139,7 +139,7 @@ honeyhunters.joinGame = function() {
 
 // load new game scene
 honeyhunters.newGame = function() {
-    var scene = new honeyhunters.hexGame();
+    var scene = new honeyhunters.HexBoard();
 	honeyhunters.director.replaceScene(scene, lime.transitions.Dissolve);
 };
 
