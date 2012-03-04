@@ -1,11 +1,36 @@
 goog.provide('honeyhunters.HexBoard');
 
+goog.require('goog.math.Coordinate');
+
 honeyhunters.HEX_SIDE_LENGTH = 20;
 
-honeyhunters.DEFAULT_COLOR = "#BDB76B";
+honeyhunters.NOT_VISIBLE_COLOR = "#BDB76B";
 honeyhunters.SELECT_COLOR = "#00FF00";
+honeyhunters.HONEY_COLOR = "#FFD700";
+honeyhunters.EMPTY_COLOR = "#808080";
+honeyhunters.YOUR_COLOR = "#87CEFA";
+honeyhunters.OPPONENTS_COLOR = "#CD5C5C";
 
-honeyhunters.selected_tile = false;
+honeyhunters.NOT_VISIBLE_SPOT = -2;
+honeyhunters.HONEY_SPOT = -1
+honeyhunters.EMPTY_SPOT = 0;
+
+honeyhunters.BOARD_SIZE_X = 13;
+honeyhunters.BOARD_SIZE_Y = 13;
+
+//honeyhunters.selected_tile = false;
+honeyhunters.boardLayer = false;
+honeyhunters.uiLayer = false;
+honeyhunters.yourScoreLabel = false;
+honeyhunters.opponentsScoreLabel = false;
+honeyhunters.honeyLeftLabel = false;
+honeyhunters.turnLabel = false;
+honeyhunters.display_board = false;
+honeyhunters.game_state = false;
+honeyhunters.board = false;
+honeyhunters.previous_board = false;
+
+honeyhunters.turn = true;
 
 /**
  * Hex board scene for Honey Hunters game.
@@ -14,27 +39,150 @@ honeyhunters.selected_tile = false;
  */
 honeyhunters.hexGame = function(){
 	lime.Scene.call(this);
-
-    //empty layer for contents
-	//var backgroundLayer = new lime.Layer();
 	
-	//backgroundLayer.fill("#8B4513");
+	var x = honeyhunters.determineXPosition();
+    honeyhunters.boardLayer = new lime.Layer().setPosition(x, honeyhunters.HEIGHT / 10).setOpacity(0);
+    honeyhunters.setupHexBoard();
+	this.appendChild(honeyhunters.boardLayer);
 	
-    var boardLayer = new lime.Layer().setPosition(0, honeyhunters.HEIGHT / 10);
-    this.appendChild(boardLayer);
-
-	honeyhunters.setupHexBoard(boardLayer);
+	honeyhunters.uiLayer = new lime.Layer().setPosition(honeyhunters.WIDTH * 2.5 / 10, honeyhunters.HEIGHT * 6.3 / 10).setOpacity(0);
+	honeyhunters.setupUI();
+	this.appendChild(honeyhunters.uiLayer);
+	
+	honeyhunters.boardLayer.runAction(new lime.animation.FadeTo(1));
+	honeyhunters.uiLayer.runAction(new lime.animation.FadeTo(1));
+	
+	honeyhunters.update();
+	lime.scheduleManager.scheduleWithDelay(honeyhunters.update, this, 2000)
 }
 goog.inherits(honeyhunters.hexGame, lime.Scene);
 
-honeyhunters.setupHexBoard = function(layer){
-	for (x=0;x<13;x++)
+honeyhunters.determineXPosition = function(){
+	var h = Math.cos(30 * (Math.PI/180)) * honeyhunters.HEX_SIDE_LENGTH;
+	var x = honeyhunters.HEX_SIDE_LENGTH * honeyhunters.BOARD_SIZE_X + h * (honeyhunters.BOARD_SIZE_X);
+	//alert("h: "+h+"\nx:"+x+"\nhoneyhunters.BOARD_SIZE_X:"+honeyhunters.BOARD_SIZE_X+"\nhoneyhunters.HEX_SIDE_LENGTH:"+honeyhunters.HEX_SIDE_LENGTH)
+	x = (honeyhunters.WIDTH - x) / 2;
+	return x;
+}
+
+honeyhunters.setupUI= function(){
+	var uiBox = new lime.RoundedRect().setSize(400,110).setRadius(5).setFill(honeyhunters.EMPTY_COLOR).setPosition(120, 50).setOpacity(.5);
+	honeyhunters.uiLayer.appendChild(uiBox);
+	
+	var yourScoreContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(honeyhunters.YOUR_COLOR).setPosition(0, 60);
+	honeyhunters.uiLayer.appendChild(yourScoreContainer);
+	
+	var oppScoreContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(honeyhunters.OPPONENTS_COLOR).setPosition(120, 60);
+	honeyhunters.uiLayer.appendChild(oppScoreContainer);
+	
+	var honeyLeftContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(honeyhunters.HONEY_COLOR).setPosition(240, 60);
+	honeyhunters.uiLayer.appendChild(honeyLeftContainer);
+}
+
+honeyhunters.setupHexBoard = function(){
+	honeyhunters.display_board = new Array(honeyhunters.BOARD_SIZE_X);
+	honeyhunters.board = new Array(honeyhunters.BOARD_SIZE_X);
+	honeyhunters.previous_board = new Array(honeyhunters.BOARD_SIZE_X);
+
+	for (x = 0; x < honeyhunters.BOARD_SIZE_X; x++)
 	{
-		for (y=0;y<13;y++)
+		honeyhunters.display_board[x] = new Array(honeyhunters.BOARD_SIZE_Y);
+		honeyhunters.board[x] = new Array(honeyhunters.BOARD_SIZE_Y);
+		honeyhunters.previous_board[x] = new Array(honeyhunters.BOARD_SIZE_Y);
+		
+		for (y = 0; y < honeyhunters.BOARD_SIZE_Y; y++)
 		{
-			layer.appendChild(honeyhunters.placeClickableHex(x, y));
+			honeyhunters.board[x][y] = honeyhunters.NOT_VISIBLE_SPOT;
+			honeyhunters.previous_board[x][y] = honeyhunters.NOT_VISIBLE_SPOT;
+			
+			honeyhunters.display_board[x][y] = honeyhunters.placeHexOfType(honeyhunters.board[x][y], x, y);
+			honeyhunters.boardLayer.appendChild(honeyhunters.display_board[x][y]);
 		}
 	}
+}
+
+honeyhunters.update = function(){
+	var site = honeyhunters.BASE_SITE + "/Status/" + honeyhunters.gameId + "/" + honeyhunters.playerId
+	
+	goog.net.XhrIo.send(site, function(e) {
+		var xhr = e.target;
+		honeyhunters.game_state = xhr.getResponseJson();
+		
+		if (honeyhunters.game_state["GameStatus"])
+		{
+			honeyhunters.updateBoard();
+			honeyhunters.updateUI();
+		}
+		
+		if (honeyhunters.game_state["Gameover"])
+		{
+			lime.scheduleManager.unschedule(honeyhunters.update);
+		}
+		//log('Received Json data object with title property of "' +  
+		//    obj['title'] + '"'); 
+		//alert(obj['content']);
+  });
+}
+
+honeyhunters.updateBoard = function(){
+	honeyhunters.board = honeyhunters.game_state["Board"]
+	// call webservice for new board
+	for (x = 0; x < honeyhunters.BOARD_SIZE_Y; x++)
+	{
+		for (y = 0; y < honeyhunters.BOARD_SIZE_Y; y++)
+		{
+			if (honeyhunters.board[x][y] != honeyhunters.previous_board[x][y])
+			{
+				honeyhunters.boardLayer.removeChild(honeyhunters.display_board[x][y]);
+				honeyhunters.display_board[x][y] = honeyhunters.placeHexOfType(honeyhunters.board[x][y], x, y);
+				honeyhunters.boardLayer.appendChild(honeyhunters.display_board[x][y]);
+				
+				if (honeyhunters.board[x][y] > honeyhunters.EMPTY_SPOT)
+					honeyhunters.boardLayer.appendChild(honeyhunters.placeEmptyHexLabel(honeyhunters.board[x][y], x, y));
+				
+				honeyhunters.previous_board[x][y] = honeyhunters.board[x][y];
+			}
+		}
+	}
+}
+
+honeyhunters.updateUI = function(){
+	honeyhunters.uiLayer.removeChild(honeyhunters.turnLabel);
+	if (!honeyhunters.game_state["GameStart"])
+	{
+		honeyhunters.turnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
+	}
+	else if (honeyhunters.game_state["Gameover"])
+	{
+		if (honeyhunters.game_state["Winner"])
+			honeyhunters.turnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold'); //.setFontColor(honeyhunters.YOUR_COLOR)
+		else
+			honeyhunters.turnLabel = new lime.Label().setText("Opponent won").setPosition(32,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
+	}
+	else
+	{
+		if (honeyhunters.game_state["Turn"])
+			honeyhunters.turnLabel = new lime.Label().setText("Your turn").setPosition(0,0).setFontWeight('bold'); //.setFontColor(honeyhunters.YOUR_COLOR)
+		else
+			honeyhunters.turnLabel = new lime.Label().setText("Opponent's turn").setPosition(32,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
+	}
+	honeyhunters.turnLabel.setFontSize(26).setSize(1000,0);
+	honeyhunters.uiLayer.appendChild(honeyhunters.turnLabel);
+
+	var pScore = honeyhunters.game_state["PlayerScore"];
+	honeyhunters.uiLayer.removeChild(honeyhunters.yourScoreLabel);
+	honeyhunters.yourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(18).setPosition(0,60);
+	honeyhunters.uiLayer.appendChild(honeyhunters.yourScoreLabel);
+	
+	var oScore = honeyhunters.game_state["OpponentScore"];
+	honeyhunters.uiLayer.removeChild(honeyhunters.opponentsScoreLabel);
+	honeyhunters.opponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18).setPosition(120,60);
+	honeyhunters.uiLayer.appendChild(honeyhunters.opponentsScoreLabel);
+	
+	var honeyLeft = honeyhunters.game_state["TotalHoney"] - pScore - oScore;
+	honeyhunters.uiLayer.removeChild(honeyhunters.honeyLeftLabel);
+	honeyhunters.honeyLeftLabel = new lime.Label().setText("Honey: " + honeyLeft).setFontSize(18).setPosition(240,60);
+	honeyhunters.uiLayer.appendChild(honeyhunters.honeyLeftLabel);
 }
 
 honeyhunters.createHex = function(sideLength) {
@@ -51,9 +199,7 @@ honeyhunters.createHex = function(sideLength) {
 					  a , 2 * b);
 }
 
-honeyhunters.placeHex = function(xArray,yArray) {
-	var hex = honeyhunters.createHex(honeyhunters.HEX_SIDE_LENGTH);
-
+honeyhunters.getHexPosition = function(xArray, yArray) {
 	var s = honeyhunters.HEX_SIDE_LENGTH;
 	var h = Math.cos(30 * (Math.PI/180)) * honeyhunters.HEX_SIDE_LENGTH;
 	
@@ -61,32 +207,113 @@ honeyhunters.placeHex = function(xArray,yArray) {
 	var yPixel = yArray * (h + s) + h;
 	
 	if (xArray % 2 == 1)
-	{
 		yPixel -= h;
-	}
+
+	return new goog.math.Coordinate(xPixel, yPixel);
+}
+
+honeyhunters.placeHex = function(xArray,yArray) {
+	var hex = honeyhunters.createHex(honeyhunters.HEX_SIDE_LENGTH);
+
+	hexPosition = honeyhunters.getHexPosition(xArray,yArray);
 	
-	hex.setPosition(xPixel,yPixel);
+	hex.setPosition(hexPosition);
 	
 	return hex;
 }
 
-honeyhunters.placeClickableHex = function(xArray,yArray) {
-	var hex = honeyhunters.placeHex(xArray,yArray)
-	hex.setFill(honeyhunters.DEFAULT_COLOR);
+honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
+	var hex = honeyhunters.placeHex(xArray,yArray);
+	hex.setFill(honeyhunters.NOT_VISIBLE_COLOR);
 	
-	goog.events.listen(hex,['mousedown','touchstart'],function(e){
-		if (honeyhunters.selected_tile == this)
+	var t = hex;
+	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) { // , 'touchmove'
+		// If the game status can not be determined or if it is not the players turn, or if the game is over, don't allow the player to click hexes
+		if (!honeyhunters.game_state["GameStatus"] || !honeyhunters.game_state["Turn"] || honeyhunters.game_state["Gameover"])
 			return;
-		else if (honeyhunters.selected_tile != false)
-			honeyhunters.selected_tile.setFill(honeyhunters.DEFAULT_COLOR);
 		
-        this.setFill(honeyhunters.SELECT_COLOR); // hex is colored to red when touched
-		honeyhunters.selected_tile = this;
-        
-        //e.swallow(['mouseup','touchend','touchcancel'],function(){
-        //    this.setFill(honeyhunters.DEFAULT_COLOR); // hex is colored back to green when interaction ends
-        //});
-    });
+		hex.setFill(honeyhunters.SELECT_COLOR);
+		
+		e.swallow('mousemove', function(e) {
+			if (t.hitTest(e)) {
+				hex.setFill(honeyhunters.SELECT_COLOR);
+			}
+			else {
+				hex.setFill(honeyhunters.NOT_VISIBLE_COLOR);
+			}
+		});
+		e.swallow('touchmove', function(e) {
+			if (!t.hitTest(e)) {
+				hex.setFill(honeyhunters.NOT_VISIBLE_COLOR);
+			}
+		});
+		e.swallow(['mouseup', 'touchend'], function(e) {
+			if (t.hitTest(e)) {
+				//honeyhunters.board[xArray][yArray] = honeyhunters.EMPTY_SPOT;
+				honeyhunters.makeMove(xArray, yArray);
+		   }
+	   });
+	});
+	return hex;
+}
+
+honeyhunters.makeMove = function(xArray, yArray) {
+	var site = honeyhunters.BASE_SITE + "/Move/" + honeyhunters.gameId + "/" + honeyhunters.playerId + "/" + xArray + "/" + yArray
 	
+	goog.net.XhrIo.send(site, function(e) {
+		//var xhr = e.target;
+		//honeyhunters.game_state = xhr.getResponseJson();
+		honeyhunters.update();
+  });
+}
+
+honeyhunters.placeEmptyHex = function(number, xArray, yArray) {
+	var hex = honeyhunters.placeHex(xArray,yArray);
+	hex.setFill(honeyhunters.EMPTY_COLOR);
+	
+	return hex;
+}
+
+honeyhunters.placeEmptyHexLabel = function(number, xArray, yArray) {
+	var label = new lime.Label().setText(number).setFontColor('#FFFFFF').setFontSize(18);
+	
+	var labelSize = label.getSize();
+	console.log(labelSize);
+	var hexPosition = honeyhunters.getHexPosition(xArray,yArray);
+	
+	var s = honeyhunters.HEX_SIDE_LENGTH;
+	var h = Math.cos(30 * (Math.PI/180)) * honeyhunters.HEX_SIDE_LENGTH;
+	
+	var middle = h + s / 2;
+	
+	hexPosition.x += middle - labelSize.width;
+	hexPosition.y += middle - labelSize.height / 2;
+	
+	label.setPosition(hexPosition);
+
+	return label;
+}
+
+honeyhunters.placeHoneyHex = function(xArray,yArray) {
+	var hex = honeyhunters.placeHex(xArray,yArray);
+	hex.setFill(honeyhunters.HONEY_COLOR);
+	
+	return hex;
+}
+
+honeyhunters.placeHexOfType =  function(type, xArray,yArray) {
+	var hex = false;
+	
+	switch(type)
+	{
+		case honeyhunters.NOT_VISIBLE_SPOT:
+			hex = honeyhunters.placeNotVisibleHex(xArray, yArray);
+			break;
+		case honeyhunters.HONEY_SPOT:
+			hex = honeyhunters.placeHoneyHex(xArray, yArray);
+			break;
+		default:
+			hex = honeyhunters.placeEmptyHex(type, xArray, yArray);
+	}
 	return hex;
 }
