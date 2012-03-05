@@ -10,7 +10,6 @@ goog.require('honeyhunters.HexBoard');
 
 honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
 
-//constant iPad size
 honeyhunters.WIDTH = 640;
 honeyhunters.HEIGHT = 960;
 
@@ -28,14 +27,6 @@ honeyhunters.loadMenu = function() {
     var scene = new lime.Scene(),
 	    layer = new lime.Layer().setPosition(honeyhunters.WIDTH * 39 / 100, 0);
 
-	//if(rb.isBrokenChrome()) layer.setRenderer(lime.Renderer.CANVAS);
-
-
-	//var title = new lime.Sprite().setFill('assets/main_title.png').setPosition(0, 290);
-	//title.qualityRenderer = true;
-	//layer.appendChild(title);
-
-
 	var page1 = new lime.Layer().setPosition(0, 430);
 	layer.appendChild(page1);
 	var moveRight = new lime.animation.MoveBy(-honeyhunters.WIDTH, 0).enableOptimizations();
@@ -49,7 +40,6 @@ honeyhunters.loadMenu = function() {
 
 	btn = honeyhunters.makeButton('Play with a friend').setPosition(0, 320);
 	goog.events.listen(btn, 'click', function() {
-	//    rb.usemode = rb.Mode.TIMED;
 	    page1.runAction(moveRight);
 	});
 	page1.appendChild(btn);

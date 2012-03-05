@@ -119,7 +119,7 @@ honeyhunters.update = function(){
 
 honeyhunters.updateBoard = function(){
 	honeyhunters.board = honeyhunters.game_state["Board"]
-	// call webservice for new board
+	
 	for (x = 0; x < honeyhunters.BOARD_SIZE_Y; x++)
 	{
 		for (y = 0; y < honeyhunters.BOARD_SIZE_Y; y++)
@@ -143,21 +143,21 @@ honeyhunters.updateUI = function(){
 	honeyhunters.uiLayer.removeChild(honeyhunters.turnLabel);
 	if (!honeyhunters.game_state["GameStart"])
 	{
-		honeyhunters.turnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
+		honeyhunters.turnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0);
 	}
 	else if (honeyhunters.game_state["GameOver"])
 	{
 		if (honeyhunters.game_state["Winner"])
-			honeyhunters.turnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold'); //.setFontColor(honeyhunters.YOUR_COLOR)
+			honeyhunters.turnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold');
 		else
-			honeyhunters.turnLabel = new lime.Label().setText("Opponent won").setPosition(32,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
+			honeyhunters.turnLabel = new lime.Label().setText("Opponent won").setPosition(32,0);
 	}
 	else
 	{
 		if (honeyhunters.game_state["Turn"])
-			honeyhunters.turnLabel = new lime.Label().setText("Your turn").setPosition(0,0).setFontWeight('bold'); //.setFontColor(honeyhunters.YOUR_COLOR)
+			honeyhunters.turnLabel = new lime.Label().setText("Your turn").setPosition(0,0).setFontWeight('bold');
 		else
-			honeyhunters.turnLabel = new lime.Label().setText("Opponent's turn").setPosition(32,0); //.setFontColor(honeyhunters.OPPONENTS_COLOR)
+			honeyhunters.turnLabel = new lime.Label().setText("Opponent's turn").setPosition(32,0);
 	}
 	honeyhunters.turnLabel.setFontSize(26).setSize(1000,0);
 	honeyhunters.uiLayer.appendChild(honeyhunters.turnLabel);
@@ -220,7 +220,7 @@ honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
 	hex.setFill(honeyhunters.NOT_VISIBLE_COLOR);
 	
 	var t = hex;
-	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) { // , 'touchmove'
+	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) {
 		// If the game status can not be determined or if it is not the players turn, or if the game is over, don't allow the player to click hexes
 		if (honeyhunters.game_state == undefined || !honeyhunters.game_state["GameStatus"] || !honeyhunters.game_state["Turn"] || honeyhunters.game_state["GameOver"])
 			return;
@@ -242,7 +242,6 @@ honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
 		});
 		e.swallow(['mouseup', 'touchend'], function(e) {
 			if (t.hitTest(e)) {
-				//honeyhunters.board[xArray][yArray] = honeyhunters.EMPTY_SPOT;
 				honeyhunters.makeMove(xArray, yArray);
 		   }
 	   });
@@ -254,8 +253,6 @@ honeyhunters.makeMove = function(xArray, yArray) {
 	var site = honeyhunters.BASE_SITE + "/Move/" + honeyhunters.gameId + "/" + honeyhunters.playerId + "/" + xArray + "/" + yArray
 	
 	goog.net.XhrIo.send(site, function(e) {
-		//var xhr = e.target;
-		//honeyhunters.game_state = xhr.getResponseJson();
 		honeyhunters.update();
 	});
 };
