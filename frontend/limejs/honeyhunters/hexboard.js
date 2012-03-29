@@ -4,12 +4,12 @@ goog.require('goog.math.Coordinate');
 
 honeyhunters.HEX_SIDE_LENGTH = 20;
 
-honeyhunters.NOT_VISIBLE_COLOR = "#BDB76B";
+honeyhunters.NOT_VISIBLE_COLOR = "#93645A"; //"#BDB76B";
 honeyhunters.SELECT_COLOR = "#00FF00";
-honeyhunters.HONEY_COLOR = "#FFD700";
+honeyhunters.HONEY_COLOR = "#F2C45A";
 honeyhunters.EMPTY_COLOR = "#808080";
-honeyhunters.YOUR_COLOR = "#87CEFA";
-honeyhunters.OPPONENTS_COLOR = "#CD5C5C";
+honeyhunters.YOUR_COLOR = "#5E8C6A";
+honeyhunters.OPPONENTS_COLOR = "#8C2318";
 
 honeyhunters.NOT_VISIBLE_SPOT = -2;
 honeyhunters.HONEY_SPOT = -1
@@ -217,7 +217,7 @@ honeyhunters.placeHex = function(xArray,yArray) {
 
 honeyhunters.placeNotVisibleHex = function(xArray,yArray) {
 	var hex = honeyhunters.placeHex(xArray,yArray);
-	hex.setFill(honeyhunters.NOT_VISIBLE_COLOR);
+	hex.setFill(honeyhunters.NOT_VISIBLE_COLOR).setOpacity(.5);
 	
 	var t = hex;
 	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) {

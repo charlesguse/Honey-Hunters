@@ -130,7 +130,7 @@ honeyhunters.newGame = function() {
 
 // helper for same size buttons
 honeyhunters.makeButton = function(text) {
-    var btn = new lime.GlossyButton(text).setSize(300, 90);
+    var btn = new lime.GlossyButton(text).setSize(300, 90).setColor("#88A65E");
     return btn;
 };
 
