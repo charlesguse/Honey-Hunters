@@ -164,10 +164,10 @@ honeyhunters.HexBoard.prototype.updateUI = function(){
 	this.opponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18).setPosition(120,60);
 	this.uiLayer.appendChild(this.opponentsScoreLabel);
 	
-	var honeyLeft = this.game_state["TotalHoney"] - pScore - oScore;
-	this.uiLayer.removeChild(this.honeyLeftLabel);
-	this.honeyLeftLabel = new lime.Label().setText("Honey: " + honeyLeft).setFontSize(18).setPosition(240,60);
-	this.uiLayer.appendChild(this.honeyLeftLabel);
+	var honeyToWin = this.game_state["TotalHoney"] / 2 + 1;
+	this.uiLayer.removeChild(this.honeyToWinLabel);
+	this.honeyToWinLabel = new lime.Label().setText("To Win: " + honeyToWin).setFontSize(18).setPosition(240,60);
+	this.uiLayer.appendChild(this.honeyToWinLabel);
 };
 
 honeyhunters.HexBoard.prototype.createHex = function(sideLength) {
