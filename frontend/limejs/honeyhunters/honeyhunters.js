@@ -6,7 +6,7 @@ goog.require('lime.GlossyButton');
 goog.require('lime.Polygon');
 goog.require('lime.animation.MoveBy');
 goog.require('lime.transitions.Dissolve');
-goog.require('honeyhunters.HexBoard');
+goog.require('honeyhunters.HexBoardProto');
 
 honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
 
