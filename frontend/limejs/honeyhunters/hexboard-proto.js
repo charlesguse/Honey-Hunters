@@ -1,6 +1,7 @@
 goog.provide('honeyhunters.HexBoardProto');
 
 goog.require('goog.math.Coordinate');
+goog.require('lime.animation.ScaleBy');
 goog.require('lime.Scene');
 
 /**
@@ -13,8 +14,13 @@ honeyhunters.HexBoard = function() {
 	
 	this.initConstants();
 	
-	var x = this.determineXPosition();
+	var x = this.determineBoardLayerXPosition();
     this.boardLayer = new lime.Layer().setPosition(x, honeyhunters.HEIGHT / 10).setOpacity(0);
+	
+	goog.events.listen(this.boardLayer,['mousedown','touchstart'],function(e){
+		e.startDrag();
+	});
+	
     this.setupHexBoard();
 	this.appendChild(this.boardLayer);
 	
@@ -32,6 +38,8 @@ goog.inherits(honeyhunters.HexBoard, lime.Scene);
 
 honeyhunters.HexBoard.prototype.initConstants = function() {
 	this.HEX_SIDE_LENGTH = 20;
+	
+	this.DRAGGABLE_PADDING = 100;
 
 	this.NOT_VISIBLE_COLOR = "#93645A";
 	this.SELECT_COLOR = "#00FF00";
@@ -46,11 +54,15 @@ honeyhunters.HexBoard.prototype.initConstants = function() {
 
 	this.BOARD_SIZE_X = 13;
 	this.BOARD_SIZE_Y = 13;
+	
+	this.hexH = Math.cos(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
+	this.hexR = Math.sin(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
+	this.hexA = this.HEX_SIDE_LENGTH / 2.0;
+	this.hexB = Math.sin(60 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
 }
 
-honeyhunters.HexBoard.prototype.determineXPosition = function(){
-	var h = Math.cos(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
-	var x = this.HEX_SIDE_LENGTH * this.BOARD_SIZE_X + h * (this.BOARD_SIZE_X);
+honeyhunters.HexBoard.prototype.determineBoardLayerXPosition = function(){
+	var x = this.HEX_SIDE_LENGTH * this.BOARD_SIZE_X + this.hexH * (this.BOARD_SIZE_X);
 	x = (honeyhunters.WIDTH - x) / 2;
 	return x;
 };
@@ -58,6 +70,9 @@ honeyhunters.HexBoard.prototype.determineXPosition = function(){
 honeyhunters.HexBoard.prototype.setupUI= function(){
 	var uiBox = new lime.RoundedRect().setSize(400,110).setRadius(5).setFill(this.EMPTY_COLOR).setPosition(120, 50).setOpacity(.5);
 	this.uiLayer.appendChild(uiBox);
+	
+	this.setupZoomOut();	
+	this.setupZoomIn();
 	
 	var yourScoreContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(this.YOUR_COLOR).setPosition(0, 60);
 	this.uiLayer.appendChild(yourScoreContainer);
@@ -69,10 +84,53 @@ honeyhunters.HexBoard.prototype.setupUI= function(){
 	this.uiLayer.appendChild(honeyLeftContainer);
 };
 
+honeyhunters.HexBoard.prototype.setupZoomOut = function(){
+	var zoomOut = new lime.animation.ScaleBy(.666667).setDuration(.2).enableOptimizations();
+	var board = this;
+	
+	var btn = new lime.GlossyButton('-').setSize(20, 20).setColor("#88A65E").setPosition(0, 0);
+	goog.events.listen(btn, 'click', function() {
+	      board.boardLayer.runAction(zoomOut);
+		  board.setupZoomOut();
+	});
+	this.uiLayer.appendChild(btn);
+	this.uiLayer.removeChild(this.zoomOutButton);
+	this.zoomOutButton = btn;
+};
+
+honeyhunters.HexBoard.prototype.setupZoomIn = function(){
+	var zoomIn = new lime.animation.ScaleBy(1.5).setDuration(.2).enableOptimizations();
+	var board = this;
+	
+	var btn = new lime.GlossyButton('+').setSize(20, 20).setColor("#88A65E").setPosition(20, 0);
+	goog.events.listen(btn, 'click', function() {
+	      board.boardLayer.runAction(zoomIn);
+		  board.setupZoomIn();
+	});
+	this.uiLayer.appendChild(btn);
+	this.uiLayer.removeChild(this.zoomInButton);
+	this.zoomInButton = btn;
+};
+
 honeyhunters.HexBoard.prototype.setupHexBoard = function(){
 	this.display_board = new Array(this.BOARD_SIZE_X);
 	this.board = new Array(this.BOARD_SIZE_X);
 	this.previous_board = new Array(this.BOARD_SIZE_X);
+	
+	
+	var topLeftX = -this.DRAGGABLE_PADDING;
+	var topLeftY = -this.DRAGGABLE_PADDING;
+	var bottomRightX = (this.hexR + this.HEX_SIDE_LENGTH) * this.BOARD_SIZE_X + this.hexR + this.DRAGGABLE_PADDING * 2;
+	var bottomRightY = this.hexH * 2 * this.BOARD_SIZE_Y + this.DRAGGABLE_PADDING * 2;
+	
+	var blah = new lime.Polygon().
+						addPoints(topLeftX, topLeftY,
+									bottomRightX, topLeftY,
+									bottomRightX, bottomRightY,
+									topLeftX, bottomRightY);
+					  
+	//blah.setFill("#FF0");
+	this.boardLayer.appendChild(blah);
 
 	for (x = 0; x < this.BOARD_SIZE_X; x++)
 	{
@@ -93,19 +151,19 @@ honeyhunters.HexBoard.prototype.setupHexBoard = function(){
 
 honeyhunters.HexBoard.prototype.updateHexBoardObject = function(){
 	var site = honeyhunters.BASE_SITE + "/Status/" + honeyhunters.gameId + "/" + honeyhunters.playerId
-	
+	var board = this;
 	goog.net.XhrIo.send(site, function(e) {
 		var xhr = e.target;
-		this.game_state = xhr.getResponseJson();
+		board.game_state = xhr.getResponseJson();
 		
-		if (this.game_state["GameStatus"])
+		if (board.game_state["GameStatus"])
 		{
-			this.updateBoard();
-			this.updateUI();
+			board.updateBoard();
+			board.updateUI();
 		}
 		
-		if (this.game_state["Gameover"])
-			lime.scheduleManager.unschedule(this.update);
+		if (board.game_state["Gameover"])
+			lime.scheduleManager.unschedule(board.updateHexBoardObject);
   });
 };
 
@@ -132,73 +190,85 @@ honeyhunters.HexBoard.prototype.updateBoard = function(){
 };
 
 honeyhunters.HexBoard.prototype.updateUI = function(){
-	this.uiLayer.removeChild(this.turnLabel);
+	var newTurnLabel = this.turnLabel;
 	if (!this.game_state["GameStart"])
 	{
-		this.turnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0);
+		newTurnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0);
 	}
 	else if (this.game_state["GameOver"])
 	{
 		if (this.game_state["Winner"])
-			this.turnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold');
+			newTurnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold');
 		else
-			this.turnLabel = new lime.Label().setText("Opponent won").setPosition(32,0);
+			newTurnLabel = new lime.Label().setText("Opponent won").setPosition(32,0);
 	}
 	else
 	{
 		if (this.game_state["Turn"])
-			this.turnLabel = new lime.Label().setText("Your turn").setPosition(0,0).setFontWeight('bold');
+			newTurnLabel = new lime.Label().setText("Your turn").setPosition(0,0).setFontWeight('bold');
 		else
-			this.turnLabel = new lime.Label().setText("Opponent's turn").setPosition(32,0);
+			newTurnLabel = new lime.Label().setText("Opponent's turn").setPosition(32,0);
 	}
-	this.turnLabel.setFontSize(26).setSize(1000,0);
-	this.uiLayer.appendChild(this.turnLabel);
+	newTurnLabel.setFontSize(26).setSize(1000,0);
+	this.uiLayer.appendChild(newTurnLabel);
+	this.uiLayer.removeChild(this.turnLabel);
+	this.turnLabel = newTurnLabel;
 
 	var pScore = this.game_state["PlayerScore"];
+	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(18).setPosition(0,60);
+	this.uiLayer.appendChild(newYourScoreLabel);
 	this.uiLayer.removeChild(this.yourScoreLabel);
-	this.yourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(18).setPosition(0,60);
-	this.uiLayer.appendChild(this.yourScoreLabel);
+	this.yourScoreLabel = newYourScoreLabel;	
 	
 	var oScore = this.game_state["OpponentScore"];
+	var newOpponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18).setPosition(120,60);
+	this.uiLayer.appendChild(newOpponentsScoreLabel);
 	this.uiLayer.removeChild(this.opponentsScoreLabel);
-	this.opponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18).setPosition(120,60);
-	this.uiLayer.appendChild(this.opponentsScoreLabel);
+	this.opponentsScoreLabel = newOpponentsScoreLabel
 	
-	var honeyToWin = this.game_state["TotalHoney"] / 2 + 1;
+	var honeyToWin = parseInt(this.game_state["TotalHoney"] / 2) + 1;
+	var newHoneyToWinLabel = new lime.Label().setText("To Win: " + honeyToWin).setFontSize(18).setPosition(240,60);
+	this.uiLayer.appendChild(newHoneyToWinLabel);
 	this.uiLayer.removeChild(this.honeyToWinLabel);
-	this.honeyToWinLabel = new lime.Label().setText("To Win: " + honeyToWin).setFontSize(18).setPosition(240,60);
-	this.uiLayer.appendChild(this.honeyToWinLabel);
+	this.honeyToWinLabel = newHoneyToWinLabel;
 };
 
-honeyhunters.HexBoard.prototype.createHex = function(sideLength) {
-	var c = sideLength;
-	var a = c / 2.0;
-	var b = Math.sin(60 * (Math.PI/180)) * c;	
+honeyhunters.HexBoard.prototype.checkIfUIHit = function(e) {
+	var totalNodes = this.uiLayer.getNumberOfChildren();
+	console.log("Total Nodes: " + totalNodes);
+	console.log(this.uiLayer);
+	for (i = 0; i < totalNodes; i++)
+	{
+		if(this.uiLayer.getChildAt(i).hitTest(e))
+			return true;
+	}
+	return false;
+};
+
+honeyhunters.HexBoard.prototype.createHex = function() {
+	var c = this.HEX_SIDE_LENGTH;
 	
 	return new lime.Polygon().
-		addPoints(0, b,
-                      a, 0,
-					  a+c, 0,
-					  2 * c, b,
-					  a + c, 2 * b,
-					  a , 2 * b);
+		addPoints(0, this.hexB,
+                      this.hexA, 0,
+					  this.hexA + c, 0,
+					  2 * c, this.hexB,
+					  this.hexA + c, 2 * this.hexB,
+					  this.hexA , 2 * this.hexB);
 };
 
 honeyhunters.HexBoard.prototype.getHexPosition = function(xArray, yArray) {
-	var s = this.HEX_SIDE_LENGTH;
-	var h = Math.cos(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
-	
-	var xPixel = xArray * 2 * h;
-	var yPixel = yArray * (h + s) + h;
+	var xPixel = xArray * 2 * this.hexH;
+	var yPixel = yArray * (this.hexH + this.HEX_SIDE_LENGTH) + this.hexH;
 	
 	if (xArray % 2 == 1)
-		yPixel -= h;
+		yPixel -= this.hexH;
 
 	return new goog.math.Coordinate(xPixel, yPixel);
 };
 
 honeyhunters.HexBoard.prototype.placeHex = function(xArray,yArray) {
-	var hex = this.createHex(this.HEX_SIDE_LENGTH);
+	var hex = this.createHex();
 
 	hexPosition = this.getHexPosition(xArray,yArray);
 	
@@ -211,41 +281,47 @@ honeyhunters.HexBoard.prototype.placeNotVisibleHex = function(xArray,yArray) {
 	var hex = this.placeHex(xArray,yArray);
 	hex.setFill(this.NOT_VISIBLE_COLOR).setOpacity(.5);
 	
-	var t = hex;
+	var board = this;
 	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) {
 		// If the game status can not be determined or if it is not the players turn, or if the game is over, don't allow the player to click hexes
-		if (this.game_state == undefined || !this.game_state["GameStatus"] || !this.game_state["Turn"] || this.game_state["GameOver"])
+		if (board.game_state == undefined || !board.game_state["GameStatus"] || !board.game_state["Turn"] || board.game_state["GameOver"] || board.checkIfUIHit(e))
 			return;
 		
-		hex.setFill(this.SELECT_COLOR);
+		hex.setFill(board.SELECT_COLOR);
 		
 		e.swallow('mousemove', function(e) {
-			if (t.hitTest(e)) {
-				hex.setFill(this.SELECT_COLOR);
-			}
-			else {
-				hex.setFill(this.NOT_VISIBLE_COLOR);
-			}
+			//if (hex.hitTest(e)) {
+			//	hex.setFill(board.SELECT_COLOR);
+			//}
+			//else {
+			hex.setFill(board.NOT_VISIBLE_COLOR);
+			//}
 		});
 		e.swallow('touchmove', function(e) {
-			if (!t.hitTest(e)) {
-				hex.setFill(this.NOT_VISIBLE_COLOR);
-			}
+			//if (!hex.hitTest(e)) {
+			hex.setFill(board.NOT_VISIBLE_COLOR);
+			//}
 		});
 		e.swallow(['mouseup', 'touchend'], function(e) {
-			if (t.hitTest(e)) {
-				this.makeMove(xArray, yArray);
+			if (hex.getFill().str == board.SELECT_COLOR) {
+				board.makeMove(xArray, yArray);
 		   }
 	   });
 	});
+	
+	//goog.events.listen(this.boardLayer,['mousedown','touchstart'],function(e){
+		// e.startDrag();
+	// });
+	
 	return hex;
 };
 
 honeyhunters.HexBoard.prototype.makeMove = function(xArray, yArray) {
 	var site = honeyhunters.BASE_SITE + "/Move/" + honeyhunters.gameId + "/" + honeyhunters.playerId + "/" + xArray + "/" + yArray
 	
+	var board = this;
 	goog.net.XhrIo.send(site, function(e) {
-		this.updateHexBoardObject();
+		board.updateHexBoardObject();
 	});
 };
 
@@ -260,13 +336,10 @@ honeyhunters.HexBoard.prototype.placeEmptyHexLabel = function(number, xArray, yA
 	var label = new lime.Label().setText(number).setFontColor('#FFFFFF').setFontSize(18);
 	
 	var labelSize = label.getSize();
-	console.log(labelSize);
+
 	var hexPosition = this.getHexPosition(xArray,yArray);
 	
-	var s = this.HEX_SIDE_LENGTH;
-	var h = Math.cos(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
-	
-	var middle = h + s / 2;
+	var middle = this.hexH + this.HEX_SIDE_LENGTH / 2;
 	
 	hexPosition.x += middle - labelSize.width;
 	hexPosition.y += middle - labelSize.height / 2;
