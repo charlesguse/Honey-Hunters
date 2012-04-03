@@ -10,41 +10,48 @@ goog.require('honeyhunters.HexBoardProto');
 
 honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
 
-honeyhunters.WIDTH = 640;
-honeyhunters.HEIGHT = 960;
+honeyhunters.WIDTH = 480;
+honeyhunters.HEIGHT = 640;
+
+honeyhunters.BUTTON_PADDING = 10;
 
 honeyhunters.gameId = false;
 honeyhunters.playerId = false;
 
 // entrypoint
-honeyhunters.start = function(){
-	honeyhunters.director = new lime.Director(document.body,honeyhunters.WIDTH,honeyhunters.HEIGHT);
+honeyhunters.start = function(width, height){
+	honeyhunters.WIDTH = typeof width !== 'undefined' ? width : honeyhunters.WIDTH;
+	honeyhunters.HEIGHT = typeof height !== 'undefined' ? height : honeyhunters.HEIGHT;
+	honeyhunters.director = new lime.Director(document.body, honeyhunters.WIDTH, honeyhunters.HEIGHT);
 	honeyhunters.loadMenu();
 };
 
 // load menu scene
 honeyhunters.loadMenu = function() {
-    var scene = new lime.Scene(),
-	    layer = new lime.Layer().setPosition(honeyhunters.WIDTH * 39 / 100, 0);
+    var scene = new lime.Scene();
+	var layer = new lime.Layer().setPosition(honeyhunters.WIDTH * 30 / 100, 0);
 
-	var page1 = new lime.Layer().setPosition(0, 430);
+	var page1 = new lime.Layer().setPosition(0, 0);
 	layer.appendChild(page1);
 	var moveRight = new lime.animation.MoveBy(-honeyhunters.WIDTH, 0).enableOptimizations();
 	var moveLeft = new lime.animation.MoveBy(honeyhunters.WIDTH, 0).enableOptimizations();
 
-	var btn = honeyhunters.makeButton('Play Quick Match').setPosition(0, 200);
+	var btn = honeyhunters.makeButton('Play Quick Match');
+	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 3);
 	goog.events.listen(btn, 'click', function() {
 	      honeyhunters.newGame();
 	});
 	page1.appendChild(btn);
 
-	btn = honeyhunters.makeButton('Play with a friend').setPosition(0, 320);
+	btn = honeyhunters.makeButton('Play with a friend');
+	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 2);
 	goog.events.listen(btn, 'click', function() {
 	    page1.runAction(moveRight);
 	});
 	page1.appendChild(btn);
 
-	btn = honeyhunters.makeButton('Help').setPosition(0, 440);
+	btn = honeyhunters.makeButton('Help');
+	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 1);
 	//goog.events.listen(btn, 'click', function() {
 	//    rb.loadHelpScene();
 	//});
@@ -54,26 +61,30 @@ honeyhunters.loadMenu = function() {
     var page2 = new lime.Layer().setPosition(honeyhunters.WIDTH, 0);
     page1.appendChild(page2);
 
-    var lbl = new lime.Label().setText('Play with a friend').setFontColor('#000').setFontSize(24).setPosition(0, 140);
+    var lbl = new lime.Label().setText('Play with a friend').setFontColor('#000').setFontSize(24);
+	lbl.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 4);
     page2.appendChild(lbl);
 
 	var gameName = "";
 	
-    btn = honeyhunters.makeButton('Host').setPosition(0, 200);
+    btn = honeyhunters.makeButton('Host');
+	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 3);
 	goog.events.listen(btn, 'click', function() {
 	    honeyhunters.gameId = prompt("Enter game to host.");
 		honeyhunters.hostGame();
 	});
 	page2.appendChild(btn);
 
-    btn = honeyhunters.makeButton('Join').setPosition(0, 320);
+    btn = honeyhunters.makeButton('Join');
+	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 2);
 	goog.events.listen(btn, 'click', function() {
 	    honeyhunters.gameId = prompt("Enter game to join.");
 		honeyhunters.joinGame()
 	});
 	page2.appendChild(btn);
 
-    btn = honeyhunters.makeButton('Back').setPosition(0, 440);
+    btn = honeyhunters.makeButton('Back');
+	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 1);
 	goog.events.listen(btn, 'click', function() {
 	    page1.runAction(moveLeft);
 	});

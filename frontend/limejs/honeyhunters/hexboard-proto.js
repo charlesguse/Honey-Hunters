@@ -15,7 +15,7 @@ honeyhunters.HexBoard = function() {
 	this.initConstants();
 	
 	var x = this.determineBoardLayerXPosition();
-    this.boardLayer = new lime.Layer().setPosition(x, honeyhunters.HEIGHT / 10).setOpacity(0);
+    this.boardLayer = new lime.Layer().setPosition(0, 0).setOpacity(0);
 	
 	goog.events.listen(this.boardLayer,['mousedown','touchstart'],function(e){
 		e.startDrag();
@@ -24,12 +24,12 @@ honeyhunters.HexBoard = function() {
     this.setupHexBoard();
 	this.appendChild(this.boardLayer);
 	
-	this.uiLayer = new lime.Layer().setPosition(honeyhunters.WIDTH * 2.5 / 10, honeyhunters.HEIGHT * 6.3 / 10).setOpacity(0);
+	this.uiLayer = new lime.Layer().setPosition(0, 0).setSize(honeyhunters.WIDTH, honeyhunters.HEIGHT).setOpacity(0);
 	this.setupUI();
 	this.appendChild(this.uiLayer);
 	
-	this.boardLayer.runAction(new lime.animation.FadeTo(1));
 	this.uiLayer.runAction(new lime.animation.FadeTo(1));
+	this.boardLayer.runAction(new lime.animation.FadeTo(1));
 	
 	this.updateHexBoardObject();
 	lime.scheduleManager.scheduleWithDelay(this.updateHexBoardObject, this, 2000)
@@ -41,6 +41,8 @@ honeyhunters.HexBoard.prototype.initConstants = function() {
 	
 	this.DRAGGABLE_PADDING = 100;
 
+	this.UI_BOX_COLOR = "#A09A6D"
+	
 	this.NOT_VISIBLE_COLOR = "#93645A";
 	this.SELECT_COLOR = "#00FF00";
 	this.HONEY_COLOR = "#F2C45A";
@@ -68,27 +70,35 @@ honeyhunters.HexBoard.prototype.determineBoardLayerXPosition = function(){
 };
 
 honeyhunters.HexBoard.prototype.setupUI= function(){
-	var uiBox = new lime.RoundedRect().setSize(400,110).setRadius(5).setFill(this.EMPTY_COLOR).setPosition(120, 50).setOpacity(.5);
-	this.uiLayer.appendChild(uiBox);
+	var y = parseInt(honeyhunters.WIDTH / 5.3333);
+	console.log(y);
+	var x = honeyhunters.WIDTH - y * 2;
+	this.uiBox = new lime.RoundedRect().setSize(x,y).setRadius(5).setFill(this.UI_BOX_COLOR);
+	this.uiBox.setPosition(this.uiBox.getSize().width / 2, honeyhunters.HEIGHT - this.uiBox.getSize().height * .5);
+	this.uiLayer.appendChild(this.uiBox);
 	
 	this.setupZoomOut();	
 	this.setupZoomIn();
 	
-	var yourScoreContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(this.YOUR_COLOR).setPosition(0, 60);
-	this.uiLayer.appendChild(yourScoreContainer);
+	this.yourScoreContainer = new lime.RoundedRect().setSize(y, y / 2).setRadius(10).setFill(this.YOUR_COLOR);
+	this.yourScoreContainer.setPosition(this.yourScoreContainer.getSize().width * -1,0);
+	this.uiBox.appendChild(this.yourScoreContainer);
 	
-	var oppScoreContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(this.OPPONENTS_COLOR).setPosition(120, 60);
-	this.uiLayer.appendChild(oppScoreContainer);
+	this.oppScoreContainer = new lime.RoundedRect().setSize(y, y / 2).setRadius(10).setFill(this.OPPONENTS_COLOR);
+	this.oppScoreContainer.setPosition(this.oppScoreContainer.getSize().width * 0, 0);
+	this.uiBox.appendChild(this.oppScoreContainer);
 	
-	var honeyLeftContainer = new lime.RoundedRect().setSize(120,60).setRadius(10).setFill(this.HONEY_COLOR).setPosition(240, 60);
-	this.uiLayer.appendChild(honeyLeftContainer);
+	this.honeyToWinContainer = new lime.RoundedRect().setSize(y, y / 2).setRadius(10).setFill(this.HONEY_COLOR);
+	this.honeyToWinContainer.setPosition(this.honeyToWinContainer.getSize().width * 1, 0);
+	this.uiBox.appendChild(this.honeyToWinContainer);
 };
 
 honeyhunters.HexBoard.prototype.setupZoomOut = function(){
 	var zoomOut = new lime.animation.ScaleBy(.666667).setDuration(.2).enableOptimizations();
 	var board = this;
 	
-	var btn = new lime.GlossyButton('-').setSize(20, 20).setColor("#88A65E").setPosition(0, 0);
+	var size = this.uiBox.getSize().height;
+	var btn = new lime.GlossyButton('-').setSize(size, size).setColor("#88A65E").setPosition(this.uiBox.getPosition().x + this.uiBox.getSize().width / 2 + size / 2, this.uiBox.getPosition().y);
 	goog.events.listen(btn, 'click', function() {
 	      board.boardLayer.runAction(zoomOut);
 		  board.setupZoomOut();
@@ -102,7 +112,8 @@ honeyhunters.HexBoard.prototype.setupZoomIn = function(){
 	var zoomIn = new lime.animation.ScaleBy(1.5).setDuration(.2).enableOptimizations();
 	var board = this;
 	
-	var btn = new lime.GlossyButton('+').setSize(20, 20).setColor("#88A65E").setPosition(20, 0);
+	var size = this.uiBox.getSize().height;
+	var btn = new lime.GlossyButton('+').setSize(size, size).setColor("#88A65E").setPosition(this.uiBox.getPosition().x + this.uiBox.getSize().width / 2 + size * 3 / 2, this.uiBox.getPosition().y);
 	goog.events.listen(btn, 'click', function() {
 	      board.boardLayer.runAction(zoomIn);
 		  board.setupZoomIn();
@@ -152,14 +163,15 @@ honeyhunters.HexBoard.prototype.setupHexBoard = function(){
 honeyhunters.HexBoard.prototype.updateHexBoardObject = function(){
 	var site = honeyhunters.BASE_SITE + "/Status/" + honeyhunters.gameId + "/" + honeyhunters.playerId
 	var board = this;
+	
 	goog.net.XhrIo.send(site, function(e) {
 		var xhr = e.target;
 		board.game_state = xhr.getResponseJson();
 		
 		if (board.game_state["GameStatus"])
 		{
-			board.updateBoard();
 			board.updateUI();
+			board.updateBoard();
 		}
 		
 		if (board.game_state["Gameover"])
@@ -191,45 +203,48 @@ honeyhunters.HexBoard.prototype.updateBoard = function(){
 
 honeyhunters.HexBoard.prototype.updateUI = function(){
 	var newTurnLabel = this.turnLabel;
+	
 	if (!this.game_state["GameStart"])
 	{
-		newTurnLabel = new lime.Label().setText("Waiting for second player").setPosition(72,0);
+		newTurnLabel = new lime.Label().setText("Waiting for second player");
 	}
 	else if (this.game_state["GameOver"])
 	{
 		if (this.game_state["Winner"])
-			newTurnLabel = new lime.Label().setText("You win!").setPosition(0,0).setFontWeight('bold');
+			newTurnLabel = new lime.Label().setText("You win!").setFontWeight('bold');
 		else
-			newTurnLabel = new lime.Label().setText("Opponent won").setPosition(32,0);
+			newTurnLabel = new lime.Label().setText("Opponent won");
 	}
 	else
 	{
 		if (this.game_state["Turn"])
-			newTurnLabel = new lime.Label().setText("Your turn").setPosition(0,0).setFontWeight('bold');
+			newTurnLabel = new lime.Label().setText("Your turn").setFontWeight('bold');
 		else
-			newTurnLabel = new lime.Label().setText("Opponent's turn").setPosition(32,0);
+			newTurnLabel = new lime.Label().setText("Opponent's turn");
 	}
-	newTurnLabel.setFontSize(26).setSize(1000,0);
-	this.uiLayer.appendChild(newTurnLabel);
-	this.uiLayer.removeChild(this.turnLabel);
+	newTurnLabel.setAnchorPoint(0,0);
+	newTurnLabel.setPosition(this.yourScoreContainer.getPosition().x, -this.uiBox.getSize().height/2)
+	newTurnLabel.setFontSize(26).setSize(1000,0).setOpacity(1);
+	this.uiBox.appendChild(newTurnLabel);
+	this.uiBox.removeChild(this.turnLabel);
 	this.turnLabel = newTurnLabel;
 
 	var pScore = this.game_state["PlayerScore"];
-	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(18).setPosition(0,60);
-	this.uiLayer.appendChild(newYourScoreLabel);
-	this.uiLayer.removeChild(this.yourScoreLabel);
+	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(18);//.setPosition(0,60);
+	this.yourScoreContainer.appendChild(newYourScoreLabel);
+	this.yourScoreContainer.removeChild(this.yourScoreLabel);
 	this.yourScoreLabel = newYourScoreLabel;	
 	
 	var oScore = this.game_state["OpponentScore"];
-	var newOpponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18).setPosition(120,60);
-	this.uiLayer.appendChild(newOpponentsScoreLabel);
-	this.uiLayer.removeChild(this.opponentsScoreLabel);
+	var newOpponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18);//.setPosition(120,60);
+	this.oppScoreContainer.appendChild(newOpponentsScoreLabel);
+	this.oppScoreContainer.removeChild(this.opponentsScoreLabel);
 	this.opponentsScoreLabel = newOpponentsScoreLabel
 	
 	var honeyToWin = parseInt(this.game_state["TotalHoney"] / 2) + 1;
-	var newHoneyToWinLabel = new lime.Label().setText("To Win: " + honeyToWin).setFontSize(18).setPosition(240,60);
-	this.uiLayer.appendChild(newHoneyToWinLabel);
-	this.uiLayer.removeChild(this.honeyToWinLabel);
+	var newHoneyToWinLabel = new lime.Label().setText("To Win: " + honeyToWin).setFontSize(18);//.setPosition(240,60);
+	this.honeyToWinContainer.appendChild(newHoneyToWinLabel);
+	this.honeyToWinContainer.removeChild(this.honeyToWinLabel);
 	this.honeyToWinLabel = newHoneyToWinLabel;
 };
 
