@@ -65,7 +65,7 @@ honeyhunters.HexBoard.prototype.initMediumSpecificVariables = function() {
 	else // if (honeyhunters.RESOLUTION == honeyhunters.HIGH_RESOLUTION)
 	{
 		this.HEX_SIDE_LENGTH = 26;
-		this.UI_FONT_SIZE = 16;
+		this.UI_FONT_SIZE = 26;
 	}
 	
 	this.DRAGGABLE_PADDING = 100;
@@ -259,7 +259,8 @@ honeyhunters.HexBoard.prototype.updateBoard = function(){
 				this.boardLayer.appendChild(this.display_board[x][y]);
 				
 				if (this.board[x][y] > this.EMPTY_SPOT)
-					this.boardLayer.appendChild(this.placeEmptyHexLabel(this.board[x][y], x, y));
+					this.display_board[x][y].appendChild(this.placeEmptyHexLabel(this.board[x][y], x, y));
+					//this.boardLayer.appendChild(this.placeEmptyHexLabel(this.board[x][y], x, y));
 				
 				this.previous_board[x][y] = this.board[x][y];
 			}
@@ -413,18 +414,9 @@ honeyhunters.HexBoard.prototype.placeEmptyHex = function(number, xArray, yArray)
 };
 
 honeyhunters.HexBoard.prototype.placeEmptyHexLabel = function(number, xArray, yArray) {
-	var label = new lime.Label().setText(number).setFontColor('#FFFFFF').setFontSize(18);
+	var label = new lime.Label().setText(number).setFontColor('#FFFFFF').setFontSize(this.UI_FONT_SIZE);
 	
-	var labelSize = label.getSize();
-
-	var hexPosition = this.getHexPosition(xArray,yArray);
-	
-	var middle = this.hexH + this.HEX_SIDE_LENGTH / 2;
-	
-	hexPosition.x += middle - labelSize.width;
-	hexPosition.y += middle - labelSize.height / 2;
-	
-	label.setPosition(hexPosition);
+	label.setPosition(this.hexH, this.hexH);
 
 	return label;
 };

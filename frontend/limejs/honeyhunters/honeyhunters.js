@@ -13,7 +13,7 @@ honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
 honeyhunters.LOW_RESOLUTION = 1;
 honeyhunters.HIGH_RESOLUTION = 2;
 
-honeyhunters.RESOLUTION = honeyhunters.LOW_RESOLUTION;
+//honeyhunters.RESOLUTION = honeyhunters.LOW_RESOLUTION;
 
 honeyhunters.BUTTON_PADDING = 10;
 
@@ -22,21 +22,22 @@ honeyhunters.playerId = false;
 
 // entrypoint
 honeyhunters.start = function(resolution){
-	honeyhunters.RESOLUTION = typeof width !== 'undefined' ? resolution : honeyhunters.RESOLUTION;
+	//honeyhunters.RESOLUTION = typeof resolution !== 'undefined' ? resolution : honeyhunters.RESOLUTION;
 	honeyhunters.setResolution();
 	honeyhunters.director = new lime.Director(document.body, honeyhunters.WIDTH, honeyhunters.HEIGHT);
 	honeyhunters.loadMenu();
 };
 
 honeyhunters.setResolution = function() {
-	switch(honeyhunters.RESOLUTION)
+	if (screen.width < 640 && screen.height < 960)
 	{
-	case honeyhunters.LOW_RESOLUTION:
+		honeyhunters.RESOLUTION = honeyhunters.LOW_RESOLUTION;
 		honeyhunters.WIDTH = 320;
 		honeyhunters.HEIGHT = 480;
-		break;
-	//case honeyhunters.HIGH_RESOLUTION:
-	default:
+	}
+	else
+	{
+		honeyhunters.RESOLUTION = honeyhunters.HIGH_RESOLUTION
 		honeyhunters.WIDTH = 640;
 		honeyhunters.HEIGHT = 960;
 	}
