@@ -10,8 +10,11 @@ goog.require('honeyhunters.HexBoardProto');
 
 honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
 
-honeyhunters.WIDTH = 480;
-honeyhunters.HEIGHT = 640;
+//honeyhunters.WIDTH = 480;
+//honeyhunters.HEIGHT = 640;
+
+honeyhunters.WIDTH = 320;
+honeyhunters.HEIGHT = 480;
 
 honeyhunters.BUTTON_PADDING = 10;
 
@@ -29,7 +32,7 @@ honeyhunters.start = function(width, height){
 // load menu scene
 honeyhunters.loadMenu = function() {
     var scene = new lime.Scene();
-	var layer = new lime.Layer().setPosition(honeyhunters.WIDTH * 30 / 100, 0);
+	var layer = new lime.Layer().setPosition(honeyhunters.WIDTH / 2, 0);
 
 	var page1 = new lime.Layer().setPosition(0, 0);
 	layer.appendChild(page1);

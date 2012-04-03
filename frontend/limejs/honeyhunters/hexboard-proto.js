@@ -222,27 +222,27 @@ honeyhunters.HexBoard.prototype.updateUI = function(){
 		else
 			newTurnLabel = new lime.Label().setText("Opponent's turn");
 	}
-	newTurnLabel.setAnchorPoint(0,0);
-	newTurnLabel.setPosition(this.yourScoreContainer.getPosition().x, -this.uiBox.getSize().height/2)
-	newTurnLabel.setFontSize(26).setSize(1000,0).setOpacity(1);
+	//newTurnLabel.setAnchorPoint(0,0);
+	newTurnLabel.setPosition(0, -this.uiBox.getSize().height / 2)
+	newTurnLabel.setSize(1000,0).setFontSize(16);
 	this.uiBox.appendChild(newTurnLabel);
 	this.uiBox.removeChild(this.turnLabel);
 	this.turnLabel = newTurnLabel;
 
 	var pScore = this.game_state["PlayerScore"];
-	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(18);//.setPosition(0,60);
+	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(16);//.setPosition(0,60);
 	this.yourScoreContainer.appendChild(newYourScoreLabel);
 	this.yourScoreContainer.removeChild(this.yourScoreLabel);
 	this.yourScoreLabel = newYourScoreLabel;	
 	
 	var oScore = this.game_state["OpponentScore"];
-	var newOpponentsScoreLabel = new lime.Label().setText("Opponent: " + oScore).setFontSize(18);//.setPosition(120,60);
+	var newOpponentsScoreLabel = new lime.Label().setText("Rival: " + oScore).setFontSize(16);//.setPosition(120,60);
 	this.oppScoreContainer.appendChild(newOpponentsScoreLabel);
 	this.oppScoreContainer.removeChild(this.opponentsScoreLabel);
 	this.opponentsScoreLabel = newOpponentsScoreLabel
 	
 	var honeyToWin = parseInt(this.game_state["TotalHoney"] / 2) + 1;
-	var newHoneyToWinLabel = new lime.Label().setText("To Win: " + honeyToWin).setFontSize(18);//.setPosition(240,60);
+	var newHoneyToWinLabel = new lime.Label().setText("Win: " + honeyToWin).setFontSize(16);//.setPosition(240,60);
 	this.honeyToWinContainer.appendChild(newHoneyToWinLabel);
 	this.honeyToWinContainer.removeChild(this.honeyToWinLabel);
 	this.honeyToWinLabel = newHoneyToWinLabel;
