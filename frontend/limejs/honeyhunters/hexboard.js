@@ -1,5 +1,6 @@
-goog.provide('honeyhunters.HexBoardProto');
+goog.provide('honeyhunters.HexBoard');
 
+goog.require('goog.math.Box');
 goog.require('goog.math.Coordinate');
 goog.require('lime.animation.ScaleBy');
 goog.require('lime.Scene');
@@ -13,13 +14,14 @@ honeyhunters.HexBoard = function() {
 	lime.Scene.call(this);
 	
 	this.initConstants();
+	this.initMediumSpecificVariables();
 	
 	var x = this.determineBoardLayerXPosition();
-    this.boardLayer = new lime.Layer().setPosition(0, 0).setOpacity(0);
+    this.boardLayer = new lime.Layer().setPosition(this.BOARD_X_START, this.BOARD_Y_START).setOpacity(0);
 	
-	goog.events.listen(this.boardLayer,['mousedown','touchstart'],function(e){
-		e.startDrag();
-	});
+	this.scale = 1;
+	
+	this.setupBoardDragEvent();
 	
     this.setupHexBoard();
 	this.appendChild(this.boardLayer);
@@ -37,10 +39,6 @@ honeyhunters.HexBoard = function() {
 goog.inherits(honeyhunters.HexBoard, lime.Scene);
 
 honeyhunters.HexBoard.prototype.initConstants = function() {
-	this.HEX_SIDE_LENGTH = 20;
-	
-	this.DRAGGABLE_PADDING = 100;
-
 	this.UI_BOX_COLOR = "#A09A6D"
 	
 	this.NOT_VISIBLE_COLOR = "#93645A";
@@ -56,11 +54,65 @@ honeyhunters.HexBoard.prototype.initConstants = function() {
 
 	this.BOARD_SIZE_X = 13;
 	this.BOARD_SIZE_Y = 13;
+}
+
+honeyhunters.HexBoard.prototype.initMediumSpecificVariables = function() {
+	if (honeyhunters.RESOLUTION == honeyhunters.LOW_RESOLUTION)
+	{
+		this.HEX_SIDE_LENGTH = 13;
+		this.UI_FONT_SIZE = 16;
+	}
+	else // if (honeyhunters.RESOLUTION == honeyhunters.HIGH_RESOLUTION)
+	{
+		this.HEX_SIDE_LENGTH = 26;
+		this.UI_FONT_SIZE = 16;
+	}
+	
+	this.DRAGGABLE_PADDING = 100;
 	
 	this.hexH = Math.cos(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
 	this.hexR = Math.sin(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
 	this.hexA = this.HEX_SIDE_LENGTH / 2.0;
 	this.hexB = Math.sin(60 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
+	
+	this.BOARD_X_START = this.hexH;
+	this.BOARD_Y_START = this.hexR * 4;
+}
+
+honeyhunters.HexBoard.prototype.setupBoardDragEvent = function() {
+	goog.events.unlisten(this.boardLayer,['mousedown','touchstart']);
+
+	console.log(this.scale);
+	var that = this;
+	goog.events.listen(this.boardLayer,['mousedown','touchstart'],function(e){
+		var boundingBox = that.getBoundingBox();
+		e.startDrag(false, boundingBox);
+	});
+}
+
+honeyhunters.HexBoard.prototype.getBoundingBox = function() {
+	if (honeyhunters.RESOLUTION == honeyhunters.LOW_RESOLUTION)
+		return this.getLowResolutionBoundingBox();
+	else // if (honeyhunters.RESOLUTION == honeyhunters.HIGH_RESOLUTION)
+		return this.getHighResolutionBoundingBox();
+}
+
+honeyhunters.HexBoard.prototype.getLowResolutionBoundingBox = function() {
+	var top = -honeyhunters.HEIGHT * this.scale + honeyhunters.HEIGHT / 2;
+	var right = honeyhunters.WIDTH * this.scale / 4 + honeyhunters.WIDTH / 2;
+	var bottom = honeyhunters.HEIGHT * this.scale / 4 + honeyhunters.HEIGHT / 2;
+	var left = -honeyhunters.WIDTH * this.scale * 1.25 + honeyhunters.WIDTH / 2;
+	
+	return boundingBox = new goog.math.Box(top, right, bottom, left);
+}
+
+honeyhunters.HexBoard.prototype.getHighResolutionBoundingBox = function() {
+	var top = -honeyhunters.HEIGHT * this.scale * 3 / 4 + honeyhunters.HEIGHT / 2;
+	var right = honeyhunters.WIDTH * this.scale / 4 + honeyhunters.WIDTH / 2;
+	var bottom = honeyhunters.HEIGHT * this.scale / 10 + honeyhunters.HEIGHT / 2;
+	var left = -honeyhunters.WIDTH * this.scale * 1.25 + honeyhunters.WIDTH / 2;
+	
+	return boundingBox = new goog.math.Box(top, right, bottom, left);
 }
 
 honeyhunters.HexBoard.prototype.determineBoardLayerXPosition = function(){
@@ -71,7 +123,7 @@ honeyhunters.HexBoard.prototype.determineBoardLayerXPosition = function(){
 
 honeyhunters.HexBoard.prototype.setupUI= function(){
 	var y = parseInt(honeyhunters.WIDTH / 5.3333);
-	console.log(y);
+	
 	var x = honeyhunters.WIDTH - y * 2;
 	this.uiBox = new lime.RoundedRect().setSize(x,y).setRadius(5).setFill(this.UI_BOX_COLOR);
 	this.uiBox.setPosition(this.uiBox.getSize().width / 2, honeyhunters.HEIGHT - this.uiBox.getSize().height * .5);
@@ -94,14 +146,21 @@ honeyhunters.HexBoard.prototype.setupUI= function(){
 };
 
 honeyhunters.HexBoard.prototype.setupZoomOut = function(){
-	var zoomOut = new lime.animation.ScaleBy(.666667).setDuration(.2).enableOptimizations();
-	var board = this;
+	var zoomFactor = .66666667;
+	var zoomOut = new lime.animation.ScaleBy(zoomFactor).setDuration(.05).enableOptimizations();
+	var that = this;
 	
 	var size = this.uiBox.getSize().height;
 	var btn = new lime.GlossyButton('-').setSize(size, size).setColor("#88A65E").setPosition(this.uiBox.getPosition().x + this.uiBox.getSize().width / 2 + size / 2, this.uiBox.getPosition().y);
 	goog.events.listen(btn, 'click', function() {
-	      board.boardLayer.runAction(zoomOut);
-		  board.setupZoomOut();
+		if (that.scale > .7)
+		{
+			that.boardLayer.runAction(zoomOut);
+			that.scale *= zoomFactor;
+			that.scale = that.scale.toFixed(4);
+			that.setupBoardDragEvent();
+		}
+		that.setupZoomOut();
 	});
 	this.uiLayer.appendChild(btn);
 	this.uiLayer.removeChild(this.zoomOutButton);
@@ -109,14 +168,21 @@ honeyhunters.HexBoard.prototype.setupZoomOut = function(){
 };
 
 honeyhunters.HexBoard.prototype.setupZoomIn = function(){
-	var zoomIn = new lime.animation.ScaleBy(1.5).setDuration(.2).enableOptimizations();
-	var board = this;
+	var zoomFactor = 1.5;
+	var zoomIn = new lime.animation.ScaleBy(1.5).setDuration(.05).enableOptimizations();
+	var that = this;
 	
 	var size = this.uiBox.getSize().height;
 	var btn = new lime.GlossyButton('+').setSize(size, size).setColor("#88A65E").setPosition(this.uiBox.getPosition().x + this.uiBox.getSize().width / 2 + size * 3 / 2, this.uiBox.getPosition().y);
 	goog.events.listen(btn, 'click', function() {
-	      board.boardLayer.runAction(zoomIn);
-		  board.setupZoomIn();
+		if (that.scale < 2.5)
+		{
+			that.boardLayer.runAction(zoomIn);
+			that.scale *= zoomFactor;
+			that.scale = that.scale.toFixed(4);
+			that.setupBoardDragEvent();
+		}
+		that.setupZoomIn();
 	});
 	this.uiLayer.appendChild(btn);
 	this.uiLayer.removeChild(this.zoomInButton);
@@ -140,7 +206,7 @@ honeyhunters.HexBoard.prototype.setupHexBoard = function(){
 									bottomRightX, bottomRightY,
 									topLeftX, bottomRightY);
 					  
-	//blah.setFill("#FF0");
+	//blah.setFill("#FF0").setOpacity(.2);
 	this.boardLayer.appendChild(blah);
 
 	for (x = 0; x < this.BOARD_SIZE_X; x++)
@@ -222,27 +288,26 @@ honeyhunters.HexBoard.prototype.updateUI = function(){
 		else
 			newTurnLabel = new lime.Label().setText("Opponent's turn");
 	}
-	//newTurnLabel.setAnchorPoint(0,0);
 	newTurnLabel.setPosition(0, -this.uiBox.getSize().height / 2)
-	newTurnLabel.setSize(1000,0).setFontSize(16);
+	newTurnLabel.setSize(1000,0).setFontSize(this.UI_FONT_SIZE);
 	this.uiBox.appendChild(newTurnLabel);
 	this.uiBox.removeChild(this.turnLabel);
 	this.turnLabel = newTurnLabel;
 
 	var pScore = this.game_state["PlayerScore"];
-	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(16);//.setPosition(0,60);
+	var newYourScoreLabel = new lime.Label().setText("You: " + pScore).setFontSize(this.UI_FONT_SIZE);//.setPosition(0,60);
 	this.yourScoreContainer.appendChild(newYourScoreLabel);
 	this.yourScoreContainer.removeChild(this.yourScoreLabel);
 	this.yourScoreLabel = newYourScoreLabel;	
 	
 	var oScore = this.game_state["OpponentScore"];
-	var newOpponentsScoreLabel = new lime.Label().setText("Rival: " + oScore).setFontSize(16);//.setPosition(120,60);
+	var newOpponentsScoreLabel = new lime.Label().setText("Rival: " + oScore).setFontSize(this.UI_FONT_SIZE);//.setPosition(120,60);
 	this.oppScoreContainer.appendChild(newOpponentsScoreLabel);
 	this.oppScoreContainer.removeChild(this.opponentsScoreLabel);
 	this.opponentsScoreLabel = newOpponentsScoreLabel
 	
 	var honeyToWin = parseInt(this.game_state["TotalHoney"] / 2) + 1;
-	var newHoneyToWinLabel = new lime.Label().setText("Win: " + honeyToWin).setFontSize(16);//.setPosition(240,60);
+	var newHoneyToWinLabel = new lime.Label().setText("Win: " + honeyToWin).setFontSize(this.UI_FONT_SIZE);//.setPosition(240,60);
 	this.honeyToWinContainer.appendChild(newHoneyToWinLabel);
 	this.honeyToWinContainer.removeChild(this.honeyToWinLabel);
 	this.honeyToWinLabel = newHoneyToWinLabel;

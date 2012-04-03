@@ -6,15 +6,14 @@ goog.require('lime.GlossyButton');
 goog.require('lime.Polygon');
 goog.require('lime.animation.MoveBy');
 goog.require('lime.transitions.Dissolve');
-goog.require('honeyhunters.HexBoardProto');
+goog.require('honeyhunters.HexBoard');
 
 honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
 
-//honeyhunters.WIDTH = 480;
-//honeyhunters.HEIGHT = 640;
+honeyhunters.LOW_RESOLUTION = 1;
+honeyhunters.HIGH_RESOLUTION = 2;
 
-honeyhunters.WIDTH = 320;
-honeyhunters.HEIGHT = 480;
+honeyhunters.RESOLUTION = honeyhunters.LOW_RESOLUTION;
 
 honeyhunters.BUTTON_PADDING = 10;
 
@@ -22,12 +21,26 @@ honeyhunters.gameId = false;
 honeyhunters.playerId = false;
 
 // entrypoint
-honeyhunters.start = function(width, height){
-	honeyhunters.WIDTH = typeof width !== 'undefined' ? width : honeyhunters.WIDTH;
-	honeyhunters.HEIGHT = typeof height !== 'undefined' ? height : honeyhunters.HEIGHT;
+honeyhunters.start = function(resolution){
+	honeyhunters.RESOLUTION = typeof width !== 'undefined' ? resolution : honeyhunters.RESOLUTION;
+	honeyhunters.setResolution();
 	honeyhunters.director = new lime.Director(document.body, honeyhunters.WIDTH, honeyhunters.HEIGHT);
 	honeyhunters.loadMenu();
 };
+
+honeyhunters.setResolution = function() {
+	switch(honeyhunters.RESOLUTION)
+	{
+	case honeyhunters.LOW_RESOLUTION:
+		honeyhunters.WIDTH = 320;
+		honeyhunters.HEIGHT = 480;
+		break;
+	//case honeyhunters.HIGH_RESOLUTION:
+	default:
+		honeyhunters.WIDTH = 640;
+		honeyhunters.HEIGHT = 960;
+	}
+}
 
 // load menu scene
 honeyhunters.loadMenu = function() {
