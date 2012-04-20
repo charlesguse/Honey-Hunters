@@ -15,7 +15,7 @@ class TestGameManagement(unittest.TestCase):
         self.testbed.init_memcache_stub()
         self.management = GameManagement()
         
-    def checkIfGamePropertiesAreEqual(self, game1, game2, debug=False):
+    def check_if_game_properties_are_equal(self, game1, game2, debug=False):
         for d in dir(game1):
             potential_property1 = "inspect.ismethod(game1.{0}) == False".format(d)
             if d in dir(game2):
@@ -30,18 +30,18 @@ class TestGameManagement(unittest.TestCase):
                         return False
         return True
         
-    def testBaseConstructor(self):
+    def test_base_constructor(self):
         self.assertEqual(self.management.TotalGames(), 0)
         
-    def testStartNewHexGameWithNoOtherGames(self):
+    def test_start_new_hex_game_with_no_other_games(self):
         game = GameBoardHex(1,'a')
         gameId = 1
         self.assertTrue(self.management.NewGame(gameId, game))
         self.assertEqual(self.management.TotalGames(), 1)
         managedGame = self.management.GetGame(gameId)
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game, managedGame))
+        self.assertTrue(self.check_if_game_properties_are_equal(game, managedGame))
 
-    def testStartNewHexGameWithOneOtherGame(self):
+    def test_start_new_hex_game_with_one_other_game(self):
         game1 = GameBoardHex(1,'a')
         game1.identifier = "game1"
         game2 = GameBoardHex(1,'a')
@@ -54,11 +54,11 @@ class TestGameManagement(unittest.TestCase):
         
         managedGame1 = self.management.GetGame(gameId1)
         managedGame2 = self.management.GetGame(gameId2)
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game1, managedGame1))
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game2, managedGame2))
-        self.assertFalse(self.checkIfGamePropertiesAreEqual(managedGame1, managedGame2))
+        self.assertTrue(self.check_if_game_properties_are_equal(game1, managedGame1))
+        self.assertTrue(self.check_if_game_properties_are_equal(game2, managedGame2))
+        self.assertFalse(self.check_if_game_properties_are_equal(managedGame1, managedGame2))
         
-    def testGameDataIsNotChangedWhileBeingManaged(self):
+    def test_game_data_is_not_changed_while_being_managed(self):
         game1 = GameBoardHex(1,'a')
         game1.identifier = "game1"
         game2 = GameBoardHex(1,'a')
@@ -71,11 +71,11 @@ class TestGameManagement(unittest.TestCase):
         
         managedGame1 = self.management.GetGame(gameId1)
         managedGame2 = self.management.GetGame(gameId2)
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game1, managedGame1))
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game2, managedGame2))
-        self.assertFalse(self.checkIfGamePropertiesAreEqual(managedGame1, managedGame2))
+        self.assertTrue(self.check_if_game_properties_are_equal(game1, managedGame1))
+        self.assertTrue(self.check_if_game_properties_are_equal(game2, managedGame2))
+        self.assertFalse(self.check_if_game_properties_are_equal(managedGame1, managedGame2))
         
-    def testStartNewHexGameWithSameIDAsOtherGame(self):
+    def test_start_new_hex_game_with_same_id_as_other_game(self):
         game1 = GameBoardHex(1,'a')
         game1.identifier = "game1"
         game2 = GameBoardHex(1,'a')
@@ -90,11 +90,11 @@ class TestGameManagement(unittest.TestCase):
         
         managedGame1 = self.management.GetGame(gameId1)
         managedGame2 = self.management.GetGame(gameId2)
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game1, managedGame1))
-        self.assertFalse(self.checkIfGamePropertiesAreEqual(game2, managedGame2))
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(managedGame1, managedGame2))
+        self.assertTrue(self.check_if_game_properties_are_equal(game1, managedGame1))
+        self.assertFalse(self.check_if_game_properties_are_equal(game2, managedGame2))
+        self.assertTrue(self.check_if_game_properties_are_equal(managedGame1, managedGame2))
     
-    def testEndHexGameWithNoOtherGames(self):
+    def test_end_hex_game_with_no_other_games(self):
         game = GameBoardHex(1,'a')
         gameId = 1
         self.management.NewGame(gameId, game)
@@ -102,7 +102,7 @@ class TestGameManagement(unittest.TestCase):
         self.assertEqual(self.management.TotalGames(), 0)
         self.assertFalse(self.management.GetGame(gameId))
         
-    def testEndFirstHexGameInListOfMultipleGames(self):
+    def test_end_first_hex_game_in_list_of_multiple_games(self):
         game1 = GameBoardHex(1,'a')
         game2 = GameBoardHex(1,'a')
         gameId1 = 1
@@ -115,10 +115,10 @@ class TestGameManagement(unittest.TestCase):
         self.assertFalse(self.management.GetGame(gameId1))
         
         managedGame2 = self.management.GetGame(gameId2)
-        self.assertFalse(self.checkIfGamePropertiesAreEqual(game1, managedGame2))
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game2, managedGame2))
+        self.assertFalse(self.check_if_game_properties_are_equal(game1, managedGame2))
+        self.assertTrue(self.check_if_game_properties_are_equal(game2, managedGame2))
         
-    def testEndSecondHexGameInListOfMultipleGames(self):
+    def test_end_second_hex_game_in_list_of_multiple_games(self):
         game1 = GameBoardHex(1,'a')
         game2 = GameBoardHex(1,'a')
         gameId1 = 1
@@ -130,10 +130,10 @@ class TestGameManagement(unittest.TestCase):
         self.assertFalse(self.management.GetGame(gameId2))
         
         managedGame1 = self.management.GetGame(gameId1)
-        self.assertTrue(self.checkIfGamePropertiesAreEqual(game1, managedGame1))
-        self.assertFalse(self.checkIfGamePropertiesAreEqual(game2, managedGame1))
+        self.assertTrue(self.check_if_game_properties_are_equal(game1, managedGame1))
+        self.assertFalse(self.check_if_game_properties_are_equal(game2, managedGame1))
     
-    def testValidate(self):
+    def test_validate(self):
         game = GameBoardHex()
         gameId = 1
         playerIdOne = 1
@@ -162,7 +162,7 @@ class TestGameManagement(unittest.TestCase):
         self.assertTrue(self.management.Validate(managedGame1, playerIdOne))
         self.assertTrue(self.management.Validate(managedGame1, playerIdTwo))
         
-    def testGameExists(self):
+    def test_game_exists(self):
         game = GameBoardHex(1, 'a')
         gameId = 1
         self.assertFalse(self.management.GameExists(gameId))

@@ -9,7 +9,7 @@ class TestGameBoardHex(unittest.TestCase):
     def setUp(self):
         self.baseLogic = GameBoardHex(1,'a')
 
-    def testSetPlayerAndPlayersExist(self):
+    def test_set_player_and_players_exist(self):
         gameBoard = GameBoardHex()
         self.assertEqual(gameBoard.playerOne, GameBoardBase.PLAYER_NOT_SET)
         self.assertEqual(gameBoard.playerTwo, GameBoardBase.PLAYER_NOT_SET)
@@ -35,7 +35,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(gameBoard.playerTwo, 'a')
         self.assertTrue(gameBoard.PlayersExist())
         
-    def testPlayerExists(self):
+    def test_player_exists(self):
         self.assertTrue(self.baseLogic.PlayerExists(1))
         self.assertTrue(self.baseLogic.PlayerExists('a'))
         self.assertFalse(self.baseLogic.PlayerExists('b'))
@@ -55,7 +55,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertTrue(gameBoard.PlayerExists('a'))
         self.assertFalse(self.baseLogic.PlayerExists('b'))
         
-    def testSetPlayerName(self):
+    def test_set_player_name(self):
         gameBoard = GameBoardHex()
         self.assertEqual(gameBoard.playerOneName, GameBoardBase.NAME_NOT_SET)
         self.assertEqual(gameBoard.playerTwoName, GameBoardBase.NAME_NOT_SET)
@@ -68,18 +68,18 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(gameBoard.playerOneName, 'one')
         self.assertEqual(gameBoard.playerTwoName, 'two')
         
-    def testBoardSize(self):
+    def test_board_size(self):
         self.assertEqual(self.baseLogic.BoardSize(), (13, 13))
     
-    def testTotalHoney(self):
+    def test_total_honey(self):
         self.assertEqual(self.baseLogic.TotalHoney(), 31)
 
-    def testCheckPlayerIds(self):
+    def test_check_player_ids(self):
         self.assertEqual(self.baseLogic.playerOne, 1)
         self.assertEqual(self.baseLogic.playerTwo, 'a')
 
     #Testing gameBoardBaseLogic, should probably be moved out of hex tests
-    def testCreateBoardArrayBeforeHoneyAdded(self):
+    def test_create_board_array_before_honey_added(self):
         expected = 0
         sum = 0
         boardSize = (3, 3)
@@ -97,7 +97,7 @@ class TestGameBoardHex(unittest.TestCase):
             self.assertEqual(len(innerArray), boardSize[1])
     
     #Testing gameBoardBaseLogic, should probably be moved out of hex tests        
-    def testCreateBoardArrayAfterHoneyAdded(self):
+    def test_create_board_array_after_honey_added(self):
         sumHoneySpots = 0
         boardSize = (2, 2)
         totalHoney = 2
@@ -110,7 +110,7 @@ class TestGameBoardHex(unittest.TestCase):
                 
         self.assertEqual(sumHoneySpots, totalHoney)
 
-    def testAddHoneyToTileAt00and01(self):
+    def test_add_honey_to_tile_at_00_and_01(self):
         sum = 0
         expected = 3
         boardSize = (2, 2)        
@@ -125,7 +125,7 @@ class TestGameBoardHex(unittest.TestCase):
                 
         self.assertEqual(sum, expected)
         
-    def testAddHoneyToTileAt00and11(self):
+    def test_add_honey_to_tile_at_00_and_11(self):
         sum = 0
         expected = 4
         boardSize = (2, 2)        
@@ -140,7 +140,7 @@ class TestGameBoardHex(unittest.TestCase):
                 
         self.assertEqual(sum, expected)
         
-    def testAddHoneyToTileAt00and11and20(self):
+    def test_add_honey_to_tile_at_00_and_11_and_20(self):
         sum = 0
         expected = 8
         boardSize = (3, 3)        
@@ -156,7 +156,7 @@ class TestGameBoardHex(unittest.TestCase):
                 
         self.assertEqual(sum, expected)
            
-    def testCheckDisplayBoard(self):
+    def test_check_display_board(self):
         boardSize = self.baseLogic.BoardSize()
         expected = boardSize[0] * boardSize[1] * GameBoardBase.NOT_VISIBLE
         sum = 0
@@ -172,7 +172,7 @@ class TestGameBoardHex(unittest.TestCase):
         for innerArray in self.baseLogic.displayBoard:
             self.assertEqual(len(innerArray), boardSize[1])
         
-    def testCheckHiddenBoard(self):
+    def test_check_hidden_board(self):
         sum = 0
         expected = self.baseLogic.TotalHoney()
         boardSize = self.baseLogic.BoardSize()
@@ -189,7 +189,7 @@ class TestGameBoardHex(unittest.TestCase):
         for innerArray in self.baseLogic.hiddenBoard:
             self.assertEqual(len(innerArray), boardSize[1])
             
-    def testDisplayVisibleSpotsOnEmptyBoard(self):
+    def test_display_visible_spots_on_empty_board(self):
         boardSum = 0
         expectedBoardSum = 0
         expectedPlayerScore = 0
@@ -205,7 +205,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testDisplayVisibleSpotsOnCornerNotTouchingHoney(self):
+    def test_display_visible_spots_on_corner_not_touching_honey(self):
         boardSum = 0
         expectedBoardSum = gameBoardBase.GameBoardBase.NOT_VISIBLE + 1 + 1 + 0 # Honey wont be visible, two adjacent tiles will be (1) and the tile displayed will be (0)
         expectedPlayerScore = 0
@@ -222,7 +222,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testDisplayVisibleSpotsOnCornerTouchingHoney(self):
+    def test_display_visible_spots_on_corner_touching_honey(self):
         boardSum = 0
         expectedBoardSum = gameBoardBase.GameBoardBase.NOT_VISIBLE * 3 + 1 # Only the spot displayed will be visible because it will be next to the honey
         expectedPlayerScore = 0
@@ -239,7 +239,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testDisplayVisibleSpotsOnHoney(self):
+    def test_display_visible_spots_on_honey(self):
         boardSum = 0
         expectedBoardSum = gameBoardBase.GameBoardBase.NOT_VISIBLE * 3 + gameBoardBase.GameBoardBase.HONEY_SPOT # Spot choosen is honey
         expectedPlayerScore = 1
@@ -256,7 +256,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testMakeMoveOnEmptyBoardWithProperPlayer(self):
+    def test_make_move_on_empty_board_with_proper_player(self):
         boardSum = 0
         expectedBoardSum = 0
         expectedPlayerScore = 0
@@ -273,7 +273,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
     
-    def testMakeMoveOnEmptyBoardWithWrongPlayer(self):
+    def test_make_move_on_empty_board_with_wrong_player(self):
         boardSum = 0
         expectedBoardSum = GameBoardBase.NOT_VISIBLE
         expectedPlayerScore = 0
@@ -290,7 +290,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testMakeMoveOnHoneyProperPlayer(self):
+    def test_make_move_on_honey_proper_player(self):
         boardSum = 0
         expectedBoardSum = GameBoardBase.HONEY_SPOT
         expectedPlayerScore = 1
@@ -307,7 +307,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testMakeMoveOnHoneyWrongPlayer(self):
+    def test_make_move_on_honey_wrong_player(self):
         boardSum = 0
         expectedBoardSum = GameBoardBase.NOT_VISIBLE
         expectedPlayerScore = 0
@@ -324,7 +324,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testMakeMoveOnVisibleSpot(self):
+    def test_make_move_on_visible_spot(self):
         boardSum = 0
         expectedBoardSum = GameBoardBase.HONEY_SPOT
         expectedPlayerScore = 0
@@ -341,7 +341,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(boardSum, expectedBoardSum)
         self.assertEqual(self.baseLogic.playerOneScore, expectedPlayerScore)
         
-    def testMakeMovePlayFullGame(self):
+    def test_make_move_play_full_game(self):
         honeySum = 0                                                        
         
         while self.baseLogic.CheckWinner(self.baseLogic.playersTurn) == False:
@@ -372,7 +372,7 @@ class TestGameBoardHex(unittest.TestCase):
                     honeySum += 1    
         self.assertEqual(honeySum, self.baseLogic.playerOneScore + self.baseLogic.playerTwoScore)
         
-    def testGetPlayerScore(self):
+    def test_get_player_score(self):
         self.assertEqual(0, self.baseLogic.GetPlayerScore(1))
         self.assertEqual(0, self.baseLogic.GetPlayerScore('a'))
         
@@ -381,10 +381,10 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(1, self.baseLogic.GetPlayerScore(1))
         self.assertEqual(2, self.baseLogic.GetPlayerScore('a'))
         
-    def testGetPlayerScoreForAPlayerThatDoesntExist(self):
+    def test_get_player_score_for_a_player_that_doesnt_exist(self):
         self.assertFalse(self.baseLogic.GetPlayerScore(123123)) 
         
-    def testGetOtherPlayerScore(self):
+    def test_get_other_player_score(self):
         self.assertEqual(0, self.baseLogic.GetOtherPlayerScore(1))
         self.assertEqual(0, self.baseLogic.GetOtherPlayerScore('a'))
         
@@ -393,10 +393,10 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(2, self.baseLogic.GetOtherPlayerScore(1))
         self.assertEqual(1, self.baseLogic.GetOtherPlayerScore('a'))
         
-    def testGetOtherPlayerScoreForAPlayerThatDoesntExist(self):
+    def test_get_other_player_score_for_a_player_that_doesnt_exist(self):
         self.assertFalse(self.baseLogic.GetOtherPlayerScore(123123))
         
-    def testGetPlayerName(self):
+    def test_get_player_name(self):
         self.assertEqual("You", self.baseLogic.GetPlayerName(1))
         self.assertEqual("You", self.baseLogic.GetPlayerName('a'))
         
@@ -405,10 +405,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual("one", self.baseLogic.GetPlayerName(1))
         self.assertEqual("two", self.baseLogic.GetPlayerName('a'))
         
-    def testGetPlayerScoreForAPlayerThatDoesntExist(self):
-        self.assertFalse(self.baseLogic.GetPlayerName(123123))
-        
-    def testGetOtherPlayerName(self):
+    def test_get_other_player_name(self):
         self.assertEqual("Opponent", self.baseLogic.GetOtherPlayerName(1))
         self.assertEqual("Opponent", self.baseLogic.GetOtherPlayerName('a'))
         
@@ -417,10 +414,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual("two", self.baseLogic.GetOtherPlayerName(1))
         self.assertEqual("one", self.baseLogic.GetOtherPlayerName('a'))
         
-    def testGetPlayerScoreForAPlayerThatDoesntExist(self):
-        self.assertFalse(self.baseLogic.GetOtherPlayerName(123123)) 
-        
-    def testPlayersTurn(self):
+    def test_players_turn(self):
         self.assertTrue(self.baseLogic.PlayersTurn(1))
         self.assertFalse(self.baseLogic.PlayersTurn('a'))
         self.assertFalse(self.baseLogic.PlayersTurn('b')) # Player does not exist
@@ -430,7 +424,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertTrue(self.baseLogic.PlayersTurn('a'))
         self.assertFalse(self.baseLogic.PlayersTurn('b')) # Player still does not exist
         
-    def testPlayersTurnForUnsetPlayers(self):
+    def test_players_turn_for_unset_players(self):
         playerOneId = 1
         playerTwoId = 2
         
@@ -452,7 +446,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertFalse(game.PlayersTurn(game.playerTwo))
         self.assertEqual(game.playersTurn, game.playerOne)
 
-    def testCheckWinner(self):
+    def test_check_winner(self):
         self.assertFalse(self.baseLogic.CheckGameOver())
         self.assertFalse(self.baseLogic.CheckWinner(1))
         self.assertFalse(self.baseLogic.CheckWinner('a'))
@@ -475,7 +469,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertFalse(self.baseLogic.CheckWinner(1))
         self.assertTrue(self.baseLogic.CheckWinner('a'))
         
-    def testCheckWinnerThatDoesNotExist(self):
+    def test_check_winner_that_does_not_exist(self):
         self.assertFalse(self.baseLogic.CheckWinner(123123))
                     
 
