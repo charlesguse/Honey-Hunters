@@ -11,7 +11,6 @@ class TestGameManagement(unittest.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_memcache_stub()
-        #memcache.flush_all()
         self.management = GameManagement()
         
     def checkIfGamePropertiesAreEqual(self, game1, game2):
@@ -20,9 +19,6 @@ class TestGameManagement(unittest.TestCase):
             if eval(potential_property):
                 game1Prop = eval("game1.{0}".format(d))
                 game2Prop = eval("game2.{0}".format(d))
-                #if d == 'identifier':
-                #    print "\ngame1.{0}: {1}".format(d, game1Prop)
-                #    print "game2.{0}: {1}\n".format(d, game2Prop)
                 if game1Prop != game2Prop:
                     return False
         return True
