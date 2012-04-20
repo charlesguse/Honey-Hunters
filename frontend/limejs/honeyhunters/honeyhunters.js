@@ -8,7 +8,7 @@ goog.require('lime.animation.MoveBy');
 goog.require('lime.transitions.Dissolve');
 goog.require('honeyhunters.HexBoard');
 
-honeyhunters.BASE_SITE = "http://nonegames.appspot.com/HH";
+honeyhunters.BASE_SITE = "http://honey-hunters.appspot.com/HH";
 
 honeyhunters.LOW_RESOLUTION = 1;
 honeyhunters.HIGH_RESOLUTION = 2;
