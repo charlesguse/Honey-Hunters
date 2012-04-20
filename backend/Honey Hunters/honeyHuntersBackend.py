@@ -29,7 +29,7 @@ class HoneyHuntersTotalGames:
     @jsonDump      
     def GET(self):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
-        return {'TotalGames' : games.TotalGames()}
+        return {'TotalGames': games.TotalGames()}
         
 class HoneyHuntersTotalStatus:
     @jsonDump      
@@ -43,21 +43,21 @@ class HoneyHuntersGameStatus:
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         currentGame = games.GetGame(gameId)
         if games.Validate(currentGame, playerId) == False:
-            return {'GameStatus' : False}
+            return {'GameStatus': False}
         else:
             return {
-                'GameStatus' : True,
-                'GameStart' : currentGame.PlayersExist(),
-                'Turn' : currentGame.PlayersTurn(playerId),
-                'PlayerName' : currentGame.GetPlayerName(playerId),
-                'PlayerScore' : currentGame.GetPlayerScore(playerId),
-                'OpponentName' : currentGame.GetOtherPlayerName(playerId),
-                'OpponentScore' : currentGame.GetOtherPlayerScore(playerId),
-                'Board' : currentGame.displayBoard,
-                'GameOver' : currentGame.CheckGameOver(),
-                'Winner' : currentGame.CheckWinner(playerId),
-                'TotalHoney' : currentGame.TotalHoney(), 
-                'GameType' : currentGame.__class__.__name__ 
+                'GameStatus': True,
+                'GameStart': currentGame.PlayersExist(),
+                'Turn': currentGame.PlayersTurn(playerId),
+                'PlayerName': currentGame.GetPlayerName(playerId),
+                'PlayerScore': currentGame.GetPlayerScore(playerId),
+                'OpponentName': currentGame.GetOtherPlayerName(playerId),
+                'OpponentScore': currentGame.GetOtherPlayerScore(playerId),
+                'Board': currentGame.displayBoard,
+                'GameOver': currentGame.CheckGameOver(),
+                'Winner': currentGame.CheckWinner(playerId),
+                'TotalHoney': currentGame.TotalHoney(), 
+                'GameType': currentGame.__class__.__name__ 
             }
             
 class HoneyHuntersGameStatusDebug:
@@ -66,22 +66,22 @@ class HoneyHuntersGameStatusDebug:
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         currentGame = games.GetGame(gameId)
         if games.Validate(currentGame) == False:
-            return {'GameStatus' : False}
+            return {'GameStatus': False}
         else:
             playerId = currentGame.playerOne
             return {
-                'GameStatus' : True,
-                'GameStart' : currentGame.PlayersExist(),
-                'Turn' : currentGame.PlayersTurn(playerId),
-                'PlayerName' : currentGame.GetPlayerName(playerId),
-                'PlayerScore' : currentGame.GetPlayerScore(playerId),
-                'OpponentName' : currentGame.GetOtherPlayerName(playerId),
-                'OpponentScore' : currentGame.GetOtherPlayerScore(playerId),
-                'Board' : currentGame.displayBoard,
-                'GameOver' : currentGame.CheckGameOver(),
-                'Winner' : currentGame.CheckWinner(playerId),
-                'TotalHoney' : currentGame.TotalHoney(), 
-                'GameType' : currentGame.__class__.__name__ 
+                'GameStatus': True,
+                'GameStart': currentGame.PlayersExist(),
+                'Turn': currentGame.PlayersTurn(playerId),
+                'PlayerName': currentGame.GetPlayerName(playerId),
+                'PlayerScore': currentGame.GetPlayerScore(playerId),
+                'OpponentName': currentGame.GetOtherPlayerName(playerId),
+                'OpponentScore': currentGame.GetOtherPlayerScore(playerId),
+                'Board': currentGame.displayBoard,
+                'GameOver': currentGame.CheckGameOver(),
+                'Winner': currentGame.CheckWinner(playerId),
+                'TotalHoney': currentGame.TotalHoney(), 
+                'GameType': currentGame.__class__.__name__ 
             }
 
 class HoneyHuntersMove:
@@ -90,19 +90,19 @@ class HoneyHuntersMove:
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         currentGame = games.GetGame(gameId)
         if games.Validate(currentGame, playerId) == False or not x or not y:
-            return {'MoveMade' : False}
+            return {'MoveMade': False}
         else:
             moveMade = currentGame.MakeMove(playerId, int(x), int(y))
             if moveMade == True:
                 moveMade = games.UpdateGame(gameId, currentGame)
-            return {'MoveMade' : moveMade}     
+            return {'MoveMade': moveMade}     
 
 class HoneyHuntersSetupHexGame:
     @jsonDump       
     def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if not gameId: 
-            return {'Setup' : False}
+            return {'Setup': False}
 
         if games.GameExists(gameId) == False:
             newgame = game.gameBoardHex.GameBoardHex()
@@ -113,10 +113,8 @@ class HoneyHuntersSetupHexGame:
             playerId = str(uuid.uuid4())
             if currentGame.SetPlayer(playerId, name):
                 games.UpdateGame(gameId, currentGame)
-                return {'Setup' : True, 'PlayerId' : playerId}
+                return {'Setup': True, 'PlayerId': playerId}
         return {'Setup' : False}
-        
-        
         
 def main():
     application = app.wsgifunc()
