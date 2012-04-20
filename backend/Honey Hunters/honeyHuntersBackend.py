@@ -13,7 +13,9 @@ urls = (
     '/HH/Status/(.*)', 'HoneyHuntersGameStatusDebug',
     '/HH/Move/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersMove',
     '/HH/SetupHex/(.*)/(.*)', 'HoneyHuntersSetupHexGame',
+    '/HH/JoinHex/(.*)/(.*)', 'HoneyHuntersJoinHexGame',
     '/HH/SetupHex/(.*)', 'HoneyHuntersSetupHexGame',
+    '/HH/JoinHex/(.*)', 'HoneyHuntersJoinHexGame',
     '/HH/TotalGames', 'HoneyHuntersTotalGames',
     '/HH/TotalStatus', 'HoneyHuntersTotalStatus'
 )
@@ -102,19 +104,36 @@ class HoneyHuntersSetupHexGame:
     def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if not gameId: 
-            return {'Setup': False}
+            return {'Setup': False, 'Message': "Game ID is missing."}
 
         if games.GameExists(gameId) == False:
             newgame = game.gameBoardHex.GameBoardHex()
             games.NewGame(gameId, newgame)
+            playerId = str(uuid.uuid4())
+            if newgame.SetPlayer(playerId, name):
+                games.UpdateGame(gameId, newgame)
+                return {'Setup': True, 'PlayerId': playerId}
+            else:
+                return {'Setup': False, 'Message': "Unable to setup the player."}
+        else:
+            return {'Setup': False, 'Message': "Game already exists."}
         
+class HoneyHuntersJoinHexGame:
+    @jsonDump       
+    def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
+        if not gameId: 
+            return {'Setup': False, 'Message': "Game ID is missing."}
+        if games.GameExists(gameId) == False:
+            return {'Setup': False, 'Message': "Game does not exist."}
         currentGame = games.GetGame(gameId)
         if currentGame.PlayersExist() == False:
             playerId = str(uuid.uuid4())
             if currentGame.SetPlayer(playerId, name):
                 games.UpdateGame(gameId, currentGame)
                 return {'Setup': True, 'PlayerId': playerId}
-        return {'Setup' : False}
+        else:
+            return {'Setup': False, 'Message': "Game has already started."}
         
 def main():
     application = app.wsgifunc()

@@ -127,13 +127,16 @@ honeyhunters.hostGame = function() {
 		}
 		else
 		{
-			alert("something failed");
+            if (state['Message'])
+                alert(state['Message']);
+            else
+                alert("What did you break?! :(");
 		}
 	});
 };
 
 honeyhunters.joinGame = function() {
-	var site = honeyhunters.BASE_SITE + "/SetupHex/" + honeyhunters.gameId
+	var site = honeyhunters.BASE_SITE + "/JoinHex/" + honeyhunters.gameId
 
 	goog.net.XhrIo.send(site, function(e) {
 		var xhr = e.target;
@@ -146,7 +149,10 @@ honeyhunters.joinGame = function() {
 		}
 		else
 		{
-			alert("something failed");
+			if (state['Message'])
+                alert(state['Message']);
+            else
+                alert("What did you break?! :(");
 		}
 	});
 };
