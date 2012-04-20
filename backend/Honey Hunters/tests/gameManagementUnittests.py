@@ -15,14 +15,19 @@ class TestGameManagement(unittest.TestCase):
         self.testbed.init_memcache_stub()
         self.management = GameManagement()
         
-    def checkIfGamePropertiesAreEqual(self, game1, game2):
+    def checkIfGamePropertiesAreEqual(self, game1, game2, debug=False):
         for d in dir(game1):
-            potential_property = "inspect.ismethod(game1.{0}) == False".format(d)
-            if eval(potential_property):
-                game1Prop = eval("game1.{0}".format(d))
-                game2Prop = eval("game2.{0}".format(d))
-                if game1Prop != game2Prop:
-                    return False
+            potential_property1 = "inspect.ismethod(game1.{0}) == False".format(d)
+            if d in dir(game2):
+                potential_property2 = "inspect.ismethod(game2.{0}) == False".format(d)
+                if eval(potential_property1) and eval(potential_property2):
+                    game1Prop = eval("game1.{0}".format(d))
+                    game2Prop = eval("game2.{0}".format(d))
+                    if debug and game1Prop != game2Prop:
+                        print "\ngame1.{0}: '{1}'".format(d, game1Prop)
+                        print "game2.{0}: '{1}'\n".format(d, game2Prop)
+                    if game1Prop != game2Prop:
+                        return False
         return True
         
     def testBaseConstructor(self):
