@@ -1,3 +1,5 @@
+from context import game
+
 from game.gameBoardBase import *
 from game.gameBoardHex import *
 import unittest

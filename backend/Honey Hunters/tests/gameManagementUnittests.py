@@ -1,3 +1,5 @@
+from context import game
+
 from game.gameManagement import *
 from game.gameBoardHex import *
 import inspect
