@@ -5,10 +5,10 @@ class GameManagement:
     TTL = 1200 # seconds
         
     def NewGame(self, gameId, game):
-        return memcache.add(gameId, game, GameManagement.TTL)
+        return memcache.add(str(gameId), game, GameManagement.TTL)
         
     def UpdateGame(self, gameId, game):
-        return memcache.set(gameId, game, GameManagement.TTL)
+        return memcache.set(str(gameId), game, GameManagement.TTL)
     
     def Validate(self, game, playerId = None):
         if playerId == None:
@@ -19,13 +19,13 @@ class GameManagement:
             return False 
     
     def GameExists(self, gameId):
-        return memcache.get(gameId) is not None
+        return memcache.get(str(gameId)) is not None
         
     def GetGame(self, gameId):
-        return memcache.get(gameId)
+        return memcache.get(str(gameId))
             
     def EndGame(self, gameId):
-        code = memcache.delete(gameId)
+        code = memcache.delete(str(gameId))
         #if code == 0:
             #log DELETE_NETWORK_FAILURE
         #if code == 1:
