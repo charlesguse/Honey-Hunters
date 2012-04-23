@@ -2,6 +2,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 import web
 import simplejson as json
 import game.game_management as gm
+import game.game_board_base as gbb
 import game.game_board_hex as gbh
 import uuid
 import Queue                              
@@ -15,6 +16,7 @@ urls = (
     '/HH/SetupHex/(.*)', 'HoneyHuntersSetupHexGame',
     '/HH/JoinHex/(.*)', 'HoneyHuntersJoinHexGame',
     '/HH/MatchmakerHex', 'HoneyHuntersMatchmakerHex',
+    '/HH/HexConstants', 'HoneyHuntersHexConstants',
     '/HH/TotalGames', 'HoneyHuntersTotalGames',
     '/HH/TotalStatus', 'HoneyHuntersTotalStatus'
 )
@@ -93,7 +95,7 @@ class HoneyHuntersMove:
             moveMade = currentGame.MakeMove(playerId, int(x), int(y))
             if moveMade == True:
                 moveMade = games.UpdateGame(gameId, currentGame)
-            return {'MoveMade': moveMade}     
+            return {'MoveMade': moveMade}
             
 class HoneyHuntersSetupHexGame:
     @jsonDump
@@ -164,7 +166,18 @@ class HoneyHuntersMatchmakerHex:
                     return {'Setup': True, 'GameId': gameId, 'PlayerId': playerId}
             else:
                 return {'Setup': False}
-            
+                
+class HoneyHuntersHexConstants:
+    @jsonDump
+    def GET(self):
+        web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
+        game = gbh.GameBoardHex()
+        return {
+            'WinCondition': game.TotalHoney() / 2 + 1,
+            'BoardSize': game.BoardSize(),
+            'NotVisibleSpot': gbb.GameBoardBase.EMPTY_SPOT,
+            'EmptySpot': gbb.GameBoardBase.NOT_VISIBLE
+        }
             
 def main():
     application = app.wsgifunc()
