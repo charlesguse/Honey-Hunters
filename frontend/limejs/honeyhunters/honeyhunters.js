@@ -57,7 +57,7 @@ honeyhunters.loadMenu = function() {
 	var btn = honeyhunters.makeButton('Play Quick Match');
 	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 3);
 	goog.events.listen(btn, 'click', function() {
-	      honeyhunters.newGame();
+	      honeyhunters.joinMatchmakerGame();
 	});
 	page1.appendChild(btn);
 
@@ -111,6 +111,33 @@ honeyhunters.loadMenu = function() {
 	scene.appendChild(layer);
 
 	honeyhunters.director.replaceScene(scene, lime.transitions.Dissolve);
+};
+
+honeyhunters.joinMatchmakerGame = function(tries) {
+	var site = honeyhunters.BASE_SITE + "/MatchmakerHex"
+    tries = typeof tries !== 'undefined' ? tries : 5;
+    
+    if (tries > 0)
+    {
+        goog.net.XhrIo.send(site, function(e) {
+            var xhr = e.target;
+            var state = xhr.getResponseJson();
+            
+            if (state['Setup'])
+            {
+                startingNewGame = true;
+                honeyhunters.gameId = state['GameId'];
+                honeyhunters.playerId = state['PlayerId'];
+                honeyhunters.newGame();
+            }
+            else
+            {
+                honeyhunters.joinMatchmakerGame(tries - 1);
+            }
+        });
+    }
+    else
+        alert("Quick Match is currently not working. Please try again later.");
 };
 
 honeyhunters.hostGame = function() {
