@@ -12,8 +12,6 @@ urls = (
     '/HH/Status/(.*)/(.*)', 'HoneyHuntersGameStatus',
     '/HH/Status/(.*)', 'HoneyHuntersGameStatusDebug',
     '/HH/Move/(.*)/(.*)/(\d*)/(\d*)', 'HoneyHuntersMove',
-    '/HH/SetupHex/(.*)/(.*)', 'HoneyHuntersSetupHexGame',
-    '/HH/JoinHex/(.*)/(.*)', 'HoneyHuntersJoinHexGame',
     '/HH/SetupHex/(.*)', 'HoneyHuntersSetupHexGame',
     '/HH/JoinHex/(.*)', 'HoneyHuntersJoinHexGame',
     '/HH/TotalGames', 'HoneyHuntersTotalGames',
@@ -75,9 +73,7 @@ class HoneyHuntersGameStatusDebug:
                 'GameStatus': True,
                 'GameStart': currentGame.PlayersExist(),
                 'Turn': currentGame.PlayersTurn(playerId),
-                'PlayerName': currentGame.GetPlayerName(playerId),
                 'PlayerScore': currentGame.GetPlayerScore(playerId),
-                'OpponentName': currentGame.GetOtherPlayerName(playerId),
                 'OpponentScore': currentGame.GetOtherPlayerScore(playerId),
                 'Board': currentGame.displayBoard,
                 'GameOver': currentGame.CheckGameOver(),
@@ -101,7 +97,7 @@ class HoneyHuntersMove:
 
 class HoneyHuntersSetupHexGame:
     @jsonDump       
-    def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
+    def GET(self, gameId):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if not gameId: 
             return {'Setup': False, 'Message': "Game ID is missing."}
@@ -110,7 +106,7 @@ class HoneyHuntersSetupHexGame:
             newgame = game.gameBoardHex.GameBoardHex()
             games.NewGame(gameId, newgame)
             playerId = str(uuid.uuid4())
-            if newgame.SetPlayer(playerId, name):
+            if newgame.SetPlayer(playerId):
                 games.UpdateGame(gameId, newgame)
                 return {'Setup': True, 'PlayerId': playerId}
             else:
@@ -120,7 +116,7 @@ class HoneyHuntersSetupHexGame:
         
 class HoneyHuntersJoinHexGame:
     @jsonDump       
-    def GET(self, gameId, name = game.gameBoardBase.GameBoardBase.NAME_NOT_SET):
+    def GET(self, gameId):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if not gameId: 
             return {'Setup': False, 'Message': "Game ID is missing."}
@@ -129,7 +125,7 @@ class HoneyHuntersJoinHexGame:
         currentGame = games.GetGame(gameId)
         if currentGame.PlayersExist() == False:
             playerId = str(uuid.uuid4())
-            if currentGame.SetPlayer(playerId, name):
+            if currentGame.SetPlayer(playerId):
                 games.UpdateGame(gameId, currentGame)
                 return {'Setup': True, 'PlayerId': playerId}
         else:

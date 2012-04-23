@@ -7,11 +7,9 @@ class GameBoardBase:
     PLAYER_NOT_SET = None
     NAME_NOT_SET = None
 
-    def __init__(self, p1 = PLAYER_NOT_SET, p2 = PLAYER_NOT_SET, n1 = NAME_NOT_SET, n2 = NAME_NOT_SET):   
+    def __init__(self, p1 = PLAYER_NOT_SET, p2 = PLAYER_NOT_SET):   
         self.playerOne = p1
         self.playerTwo = p2
-        self.playerOneName = n1
-        self.playerTwoName = n2
         
         self.playersTurn = p1
 
@@ -47,16 +45,14 @@ class GameBoardBase:
         else:
             return False 
 
-    def SetPlayer(self, playerId, playerName = NAME_NOT_SET):
+    def SetPlayer(self, playerId):
         if self.PlayerExists(playerId):
             return False
         elif self.playerOne == GameBoardBase.PLAYER_NOT_SET:
             self.playerOne = playerId
-            self.playerOneName = playerName
             return True
         elif self.playerTwo == GameBoardBase.PLAYER_NOT_SET:
             self.playerTwo = playerId
-            self.playerTwoName = playerName
             return True
         else:
             return False # If a player cannot be set, return false
@@ -87,34 +83,6 @@ class GameBoardBase:
             return self.playerOneScore
         else:
             return False
-            
-    def GetPlayerName(self, playerId):
-        name = GameBoardBase.NAME_NOT_SET
-        if self.playerOne == playerId:
-            name = self.playerOneName
-        elif self.playerTwo == playerId:
-            name = self.playerTwoName
-        else:
-            return False
-        
-        if name == GameBoardBase.NAME_NOT_SET:
-            return 'You'
-        else:
-            return name
-            
-    def GetOtherPlayerName(self, playerId):
-        name = GameBoardBase.NAME_NOT_SET
-        if self.playerOne == playerId:
-            name = self.playerTwoName
-        elif self.playerTwo == playerId:
-            name = self.playerOneName
-        else:
-            return False
-        
-        if name == GameBoardBase.NAME_NOT_SET:
-            return 'Opponent'
-        else:
-            return name
 
     def CreateHiddenBoard(self):
         size = self.BoardSize()

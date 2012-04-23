@@ -55,19 +55,6 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertTrue(gameBoard.PlayerExists('a'))
         self.assertFalse(self.baseLogic.PlayerExists('b'))
         
-    def test_set_player_name(self):
-        gameBoard = GameBoardHex()
-        self.assertEqual(gameBoard.playerOneName, GameBoardBase.NAME_NOT_SET)
-        self.assertEqual(gameBoard.playerTwoName, GameBoardBase.NAME_NOT_SET)
-        
-        self.assertTrue(gameBoard.SetPlayer(1, 'one'))
-        self.assertEqual(gameBoard.playerOneName, 'one')
-        self.assertEqual(gameBoard.playerTwoName, GameBoardBase.NAME_NOT_SET)
-        
-        self.assertTrue(gameBoard.SetPlayer('a', 'two'))
-        self.assertEqual(gameBoard.playerOneName, 'one')
-        self.assertEqual(gameBoard.playerTwoName, 'two')
-        
     def test_board_size(self):
         self.assertEqual(self.baseLogic.BoardSize(), (13, 13))
     
@@ -395,24 +382,6 @@ class TestGameBoardHex(unittest.TestCase):
         
     def test_get_other_player_score_for_a_player_that_doesnt_exist(self):
         self.assertFalse(self.baseLogic.GetOtherPlayerScore(123123))
-        
-    def test_get_player_name(self):
-        self.assertEqual("You", self.baseLogic.GetPlayerName(1))
-        self.assertEqual("You", self.baseLogic.GetPlayerName('a'))
-        
-        self.baseLogic.playerOneName = "one"
-        self.baseLogic.playerTwoName = "two"
-        self.assertEqual("one", self.baseLogic.GetPlayerName(1))
-        self.assertEqual("two", self.baseLogic.GetPlayerName('a'))
-        
-    def test_get_other_player_name(self):
-        self.assertEqual("Opponent", self.baseLogic.GetOtherPlayerName(1))
-        self.assertEqual("Opponent", self.baseLogic.GetOtherPlayerName('a'))
-        
-        self.baseLogic.playerOneName = "one"
-        self.baseLogic.playerTwoName = "two"
-        self.assertEqual("two", self.baseLogic.GetOtherPlayerName(1))
-        self.assertEqual("one", self.baseLogic.GetOtherPlayerName('a'))
         
     def test_players_turn(self):
         self.assertTrue(self.baseLogic.PlayersTurn(1))
