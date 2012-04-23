@@ -6,4 +6,4 @@ threadsafe: false
 
 handlers:
 - url: .*
-  script: honeyHuntersBackend.py
+  script: honey_hunters_backend.py

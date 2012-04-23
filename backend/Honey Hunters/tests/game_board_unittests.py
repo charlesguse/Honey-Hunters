@@ -1,7 +1,7 @@
 from context import game
 
-from game.gameBoardBase import *
-from game.gameBoardHex import *
+from game.game_board_base import *
+from game.game_board_hex import *
 import unittest
 
 class TestGameBoardHex(unittest.TestCase):
@@ -65,7 +65,7 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertEqual(self.baseLogic.playerOne, 1)
         self.assertEqual(self.baseLogic.playerTwo, 'a')
 
-    #Testing gameBoardBaseLogic, should probably be moved out of hex tests
+    #Testing game_board_base logic, should probably be moved out of hex tests
     def test_create_board_array_before_honey_added(self):
         expected = 0
         sum = 0
@@ -83,7 +83,7 @@ class TestGameBoardHex(unittest.TestCase):
         for innerArray in arr:
             self.assertEqual(len(innerArray), boardSize[1])
     
-    #Testing gameBoardBaseLogic, should probably be moved out of hex tests        
+    #Testing game_board_base logic, should probably be moved out of hex tests        
     def test_create_board_array_after_honey_added(self):
         sumHoneySpots = 0
         boardSize = (2, 2)
@@ -182,8 +182,8 @@ class TestGameBoardHex(unittest.TestCase):
         expectedPlayerScore = 0
         boardSize = (2, 2)
         
-        refArray = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.EMPTY_SPOT)
-        updateArr = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.NOT_VISIBLE)
+        refArray = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.EMPTY_SPOT)
+        updateArr = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.NOT_VISIBLE)
         self.baseLogic.DisplayVisibleSpots(self.baseLogic.playerOne, updateArr, refArray, 0, 0)
         for i in updateArr:
             for j in i:
@@ -194,12 +194,12 @@ class TestGameBoardHex(unittest.TestCase):
         
     def test_display_visible_spots_on_corner_not_touching_honey(self):
         boardSum = 0
-        expectedBoardSum = gameBoardBase.GameBoardBase.NOT_VISIBLE + 1 + 1 + 0 # Honey wont be visible, two adjacent tiles will be (1) and the tile displayed will be (0)
+        expectedBoardSum = game_board_base.GameBoardBase.NOT_VISIBLE + 1 + 1 + 0 # Honey wont be visible, two adjacent tiles will be (1) and the tile displayed will be (0)
         expectedPlayerScore = 0
         boardSize = (2, 2)        
         
-        refArray = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.EMPTY_SPOT)
-        updateArr = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.NOT_VISIBLE)
+        refArray = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.EMPTY_SPOT)
+        updateArr = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.NOT_VISIBLE)
         self.baseLogic.AddHoneyToTile(refArray, 1, 0)
         self.baseLogic.DisplayVisibleSpots(self.baseLogic.playerOne, updateArr, refArray, 0, 1)
         for i in updateArr:
@@ -211,12 +211,12 @@ class TestGameBoardHex(unittest.TestCase):
         
     def test_display_visible_spots_on_corner_touching_honey(self):
         boardSum = 0
-        expectedBoardSum = gameBoardBase.GameBoardBase.NOT_VISIBLE * 3 + 1 # Only the spot displayed will be visible because it will be next to the honey
+        expectedBoardSum = game_board_base.GameBoardBase.NOT_VISIBLE * 3 + 1 # Only the spot displayed will be visible because it will be next to the honey
         expectedPlayerScore = 0
         boardSize = (2, 2)        
         
-        refArray = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.EMPTY_SPOT)
-        updateArr = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.NOT_VISIBLE)
+        refArray = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.EMPTY_SPOT)
+        updateArr = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.NOT_VISIBLE)
         self.baseLogic.AddHoneyToTile(refArray, 0, 0)
         self.baseLogic.DisplayVisibleSpots(self.baseLogic.playerOne, updateArr, refArray, 0, 1)
         for i in updateArr:
@@ -228,12 +228,12 @@ class TestGameBoardHex(unittest.TestCase):
         
     def test_display_visible_spots_on_honey(self):
         boardSum = 0
-        expectedBoardSum = gameBoardBase.GameBoardBase.NOT_VISIBLE * 3 + gameBoardBase.GameBoardBase.HONEY_SPOT # Spot choosen is honey
+        expectedBoardSum = game_board_base.GameBoardBase.NOT_VISIBLE * 3 + game_board_base.GameBoardBase.HONEY_SPOT # Spot choosen is honey
         expectedPlayerScore = 1
         boardSize = (2, 2)        
         
-        refArray = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.EMPTY_SPOT)
-        updateArr = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.NOT_VISIBLE)
+        refArray = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.EMPTY_SPOT)
+        updateArr = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.NOT_VISIBLE)
         self.baseLogic.AddHoneyToTile(refArray, 0, 0)
         self.baseLogic.DisplayVisibleSpots(self.baseLogic.playerOne, updateArr, refArray, 0, 0)
         for i in updateArr:
@@ -250,7 +250,7 @@ class TestGameBoardHex(unittest.TestCase):
         boardSize = (1, 1)
         
         self.baseLogic.hiddenBoard = self.baseLogic.CreateBoardArray(boardSize, GameBoardBase.EMPTY_SPOT)
-        self.baseLogic.displayBoard = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.NOT_VISIBLE)
+        self.baseLogic.displayBoard = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.NOT_VISIBLE)
         self.assertTrue(self.baseLogic.MakeMove(self.baseLogic.playersTurn, 0, 0))
         for i in self.baseLogic.displayBoard:
             for j in i:
@@ -267,7 +267,7 @@ class TestGameBoardHex(unittest.TestCase):
         boardSize = (1, 1)
         
         self.baseLogic.hiddenBoard = self.baseLogic.CreateBoardArray(boardSize, GameBoardBase.EMPTY_SPOT)
-        self.baseLogic.displayBoard = self.baseLogic.CreateBoardArray(boardSize, gameBoardBase.GameBoardBase.NOT_VISIBLE)
+        self.baseLogic.displayBoard = self.baseLogic.CreateBoardArray(boardSize, game_board_base.GameBoardBase.NOT_VISIBLE)
         self.assertFalse(self.baseLogic.MakeMove(self.baseLogic.playerTwo, 0, 0))
         for i in self.baseLogic.displayBoard:
             for j in i:

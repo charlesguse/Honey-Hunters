@@ -1,6 +1,6 @@
-import gameBoardBase
+import game_board_base
 
-class GameBoardHex(gameBoardBase.GameBoardBase):
+class GameBoardHex(game_board_base.GameBoardBase):
     SIZE = (13, 13)
     TOTAL_HONEY = 31
     
@@ -11,13 +11,13 @@ class GameBoardHex(gameBoardBase.GameBoardBase):
         return GameBoardHex.TOTAL_HONEY
             
     def DisplayVisibleSpots(self, playerId, updateArr, refArray, x, y):
-        if 0 <= x and x < len(refArray) and 0 <= y and y < len(refArray[x]) and len(refArray) == len(updateArr) and len(refArray[x]) == len(updateArr[x]) and updateArr[x][y] == gameBoardBase.GameBoardBase.NOT_VISIBLE:
-            if refArray[x][y] == gameBoardBase.GameBoardBase.HONEY_SPOT and playerId == self.playerOne:
+        if 0 <= x and x < len(refArray) and 0 <= y and y < len(refArray[x]) and len(refArray) == len(updateArr) and len(refArray[x]) == len(updateArr[x]) and updateArr[x][y] == game_board_base.GameBoardBase.NOT_VISIBLE:
+            if refArray[x][y] == game_board_base.GameBoardBase.HONEY_SPOT and playerId == self.playerOne:
                 self.playerOneScore += 1
-            if refArray[x][y] == gameBoardBase.GameBoardBase.HONEY_SPOT and playerId == self.playerTwo:
+            if refArray[x][y] == game_board_base.GameBoardBase.HONEY_SPOT and playerId == self.playerTwo:
                 self.playerTwoScore += 1
             updateArr[x][y] = refArray[x][y]
-            if refArray[x][y] == gameBoardBase.GameBoardBase.EMPTY_SPOT:
+            if refArray[x][y] == game_board_base.GameBoardBase.EMPTY_SPOT:
                 # Top (odd x and even x)
                 self.DisplayVisibleSpots(playerId, updateArr, refArray, x, y - 1)
                 # Bottom (odd x and even x)
@@ -41,7 +41,7 @@ class GameBoardHex(gameBoardBase.GameBoardBase):
             
     
     def AddHoneyToTile(self, arr, x, y):
-        arr[x][y] = gameBoardBase.GameBoardBase.HONEY_SPOT
+        arr[x][y] = game_board_base.GameBoardBase.HONEY_SPOT
         # Top (odd x and even x)
         self.UpdateArrayInBound(arr, x, y - 1)
         # Bottom (odd x and even x)

@@ -1,7 +1,7 @@
 from context import game
 
-from game.gameManagement import *
-from game.gameBoardHex import *
+from game.game_management import *
+from game.game_board_hex import *
 import inspect
 import unittest
 from google.appengine.api import memcache

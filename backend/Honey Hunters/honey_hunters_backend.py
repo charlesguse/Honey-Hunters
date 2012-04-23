@@ -1,9 +1,8 @@
 from google.appengine.ext.webapp.util import run_wsgi_app
 import web
 import simplejson as json
-import game
-import game.gameManagement
-import game.gameBoardHex
+import game.game_management as gm
+import game.game_board_hex as gbh
 import uuid                                 
 
 accessControlAllowOriginValue = "*" #"http://nonegames.net"
@@ -18,13 +17,13 @@ urls = (
     '/HH/TotalStatus', 'HoneyHuntersTotalStatus'
 )
 app = web.application(urls, globals())
-games = game.gameManagement.GameManagement()
+games = gm.GameManagement()
 
 def jsonDump(func):
     def jsonizeFunc(*args, **kwargs):
         return json.dumps(func(*args, **kwargs))
     return jsonizeFunc
-        
+    
 class HoneyHuntersTotalGames:
     @jsonDump      
     def GET(self):
@@ -49,15 +48,12 @@ class HoneyHuntersGameStatus:
                 'GameStatus': True,
                 'GameStart': currentGame.PlayersExist(),
                 'Turn': currentGame.PlayersTurn(playerId),
-                'PlayerName': currentGame.GetPlayerName(playerId),
                 'PlayerScore': currentGame.GetPlayerScore(playerId),
-                'OpponentName': currentGame.GetOtherPlayerName(playerId),
                 'OpponentScore': currentGame.GetOtherPlayerScore(playerId),
                 'Board': currentGame.displayBoard,
                 'GameOver': currentGame.CheckGameOver(),
                 'Winner': currentGame.CheckWinner(playerId),
-                'TotalHoney': currentGame.TotalHoney(), 
-                'GameType': currentGame.__class__.__name__ 
+                'TotalHoney': currentGame.TotalHoney()
             }
             
 class HoneyHuntersGameStatusDebug:
@@ -78,10 +74,10 @@ class HoneyHuntersGameStatusDebug:
                 'Board': currentGame.displayBoard,
                 'GameOver': currentGame.CheckGameOver(),
                 'Winner': currentGame.CheckWinner(playerId),
-                'TotalHoney': currentGame.TotalHoney(), 
+                'TotalHoney': currentGame.TotalHoney(),
                 'GameType': currentGame.__class__.__name__ 
             }
-
+            
 class HoneyHuntersMove:
     @jsonDump       
     def GET(self, gameId, playerId, x, y):
@@ -94,16 +90,16 @@ class HoneyHuntersMove:
             if moveMade == True:
                 moveMade = games.UpdateGame(gameId, currentGame)
             return {'MoveMade': moveMade}     
-
+            
 class HoneyHuntersSetupHexGame:
     @jsonDump       
     def GET(self, gameId):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         if not gameId: 
             return {'Setup': False, 'Message': "Game ID is missing."}
-
+            
         if games.GameExists(gameId) == False:
-            newgame = game.gameBoardHex.GameBoardHex()
+            newgame = gbh.GameBoardHex()
             games.NewGame(gameId, newgame)
             playerId = str(uuid.uuid4())
             if newgame.SetPlayer(playerId):
@@ -113,7 +109,7 @@ class HoneyHuntersSetupHexGame:
                 return {'Setup': False, 'Message': "Unable to setup the player."}
         else:
             return {'Setup': False, 'Message': "Game already exists."}
-        
+            
 class HoneyHuntersJoinHexGame:
     @jsonDump       
     def GET(self, gameId):
@@ -130,7 +126,7 @@ class HoneyHuntersJoinHexGame:
                 return {'Setup': True, 'PlayerId': playerId}
         else:
             return {'Setup': False, 'Message': "Game has already started."}
-        
+            
 def main():
     application = app.wsgifunc()
     run_wsgi_app(application)
