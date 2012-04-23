@@ -97,37 +97,37 @@ class HoneyHuntersMove:
             
 class HoneyHuntersSetupHexGame:
     @jsonDump
-    def GET(self, gameId):
+    def GET(self, game_name):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
-        if not gameId: 
+        if not game_name: 
             return {'Setup': False, 'Message': "Game ID is missing."}
-            
-        if games.GameExists(gameId) == False:
-            newgame = gbh.GameBoardHex()
-            games.NewGame(gameId, newgame)
-            playerId = str(uuid.uuid4())
-            if newgame.SetPlayer(playerId):
-                games.UpdateGame(gameId, newgame)
-                return {'Setup': True, 'PlayerId': playerId}
-            else:
-                return {'Setup': False, 'Message': "Unable to setup the player."}
-        else:
+        game_id = games.SetGameIdFromName(game_name)
+        if game_id == None:
             return {'Setup': False, 'Message': "Game already exists."}
+        newgame = gbh.GameBoardHex()
+        playerId = str(uuid.uuid4())
+        if newgame.SetPlayer(playerId) and games.NewGame(game_id, newgame):
+            return {'Setup': True, 'GameId': game_id, 'PlayerId': playerId}
+        else:
+            return {'Setup': False, 'Message': "Unable to setup the game."}
             
 class HoneyHuntersJoinHexGame:
     @jsonDump
-    def GET(self, gameId):
+    def GET(self, game_name):
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
-        if not gameId: 
+        if not game_name: 
             return {'Setup': False, 'Message': "Game ID is missing."}
-        if games.GameExists(gameId) == False:
+        game_id = games.GetGameIdFromName(game_name)
+        if game_id == None:
             return {'Setup': False, 'Message': "Game does not exist."}
-        currentGame = games.GetGame(gameId)
+        currentGame = games.GetGame(game_id)
+        if currentGame == None:
+            return {'Setup': False, 'Message': "Game does not exist."}
         if currentGame.PlayersExist() == False:
             playerId = str(uuid.uuid4())
-            if currentGame.SetPlayer(playerId):
-                games.UpdateGame(gameId, currentGame)
-                return {'Setup': True, 'PlayerId': playerId}
+            if currentGame.SetPlayer(playerId) and games.UpdateGame(game_id, currentGame):
+                games.RemoveGameName(game_name)
+                return {'Setup': True, 'GameId': game_id, 'PlayerId': playerId}
         else:
             return {'Setup': False, 'Message': "Game has already started."}
             
@@ -154,9 +154,9 @@ class HoneyHuntersMatchmakerHex:
                 gameId = matchmaker_queue.get(False)
             except Queue.Empty:
                 return {'Setup': False}
-            if games.GameExists(gameId) == False:
-                return {'Setup': False}
             currentGame = games.GetGame(gameId)
+            if currentGame == None:
+                return {'Setup': False}
             if currentGame.PlayersExist() == False:
                 playerId = str(uuid.uuid4())
                 if currentGame.SetPlayer(playerId):

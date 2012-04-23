@@ -83,21 +83,19 @@ honeyhunters.loadMenu = function() {
 	lbl.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 4);
     page2.appendChild(lbl);
 
-	var gameName = "";
-	
     btn = honeyhunters.makeButton('Host');
 	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 3);
 	goog.events.listen(btn, 'click', function() {
-	    honeyhunters.gameId = prompt("Enter game to host.");
-		honeyhunters.hostGame();
+	    var gameName = prompt("Enter game to host.");
+		honeyhunters.hostGame(gameName);
 	});
 	page2.appendChild(btn);
 
     btn = honeyhunters.makeButton('Join');
 	btn.setPosition(0, honeyhunters.HEIGHT - (btn.getSize().height + honeyhunters.BUTTON_PADDING) * 2);
 	goog.events.listen(btn, 'click', function() {
-	    honeyhunters.gameId = prompt("Enter game to join.");
-		honeyhunters.joinGame()
+	    var gameName = prompt("Enter game to join.");
+		honeyhunters.joinGame(gameName)
 	});
 	page2.appendChild(btn);
 
@@ -125,7 +123,6 @@ honeyhunters.joinMatchmakerGame = function(tries) {
             
             if (state['Setup'])
             {
-                startingNewGame = true;
                 honeyhunters.gameId = state['GameId'];
                 honeyhunters.playerId = state['PlayerId'];
                 honeyhunters.newGame();
@@ -140,8 +137,8 @@ honeyhunters.joinMatchmakerGame = function(tries) {
         alert("Quick Match is currently not working. Please try again later.");
 };
 
-honeyhunters.hostGame = function() {
-	var site = honeyhunters.BASE_SITE + "/SetupHex/" + honeyhunters.gameId
+honeyhunters.hostGame = function(gameName) {
+	var site = honeyhunters.BASE_SITE + "/SetupHex/" + gameName
 
 	goog.net.XhrIo.send(site, function(e) {
 		var xhr = e.target;
@@ -149,6 +146,7 @@ honeyhunters.hostGame = function() {
 		
 		if (state['Setup'])
 		{
+            honeyhunters.gameId = state['GameId'];
 			honeyhunters.playerId = state['PlayerId'];
 			honeyhunters.newGame();
 		}
@@ -162,8 +160,8 @@ honeyhunters.hostGame = function() {
 	});
 };
 
-honeyhunters.joinGame = function() {
-	var site = honeyhunters.BASE_SITE + "/JoinHex/" + honeyhunters.gameId
+honeyhunters.joinGame = function(gameName) {
+	var site = honeyhunters.BASE_SITE + "/JoinHex/" + gameName
 
 	goog.net.XhrIo.send(site, function(e) {
 		var xhr = e.target;
@@ -171,6 +169,7 @@ honeyhunters.joinGame = function() {
 		
 		if (state['Setup'])
 		{
+            honeyhunters.gameId = state['GameId'];
 			honeyhunters.playerId = state['PlayerId'];
 			honeyhunters.newGame();
 		}

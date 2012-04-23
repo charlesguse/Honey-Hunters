@@ -161,13 +161,46 @@ class TestGameManagement(unittest.TestCase):
         managedGame1 = self.management.GetGame(gameId)
         self.assertTrue(self.management.Validate(managedGame1, playerIdOne))
         self.assertTrue(self.management.Validate(managedGame1, playerIdTwo))
+    
+    def test_set_game_id_from_name(self):
+        game_id = self.management.SetGameIdFromName("a")
+        self.assertEqual(game_id, memcache.get("a", namespace=GameManagement.NAME_NAMESPACE))
+    
+    def test_same_game_id_and_game_name(self):
+        game_name = "a"
         
-    def test_game_exists(self):
-        game = GameBoardHex(1, 'a')
-        gameId = 1
-        self.assertFalse(self.management.GameExists(gameId))
-        self.management.NewGame(gameId, game)
-        self.assertTrue(self.management.GameExists(gameId))
+        game_id = self.management.SetGameIdFromName(game_name)
+        self.assertEqual(game_id, memcache.get(game_name, namespace=GameManagement.NAME_NAMESPACE))
+        
+        game = GameBoardHex()
+        self.assertTrue(self.management.NewGame(game_name, game))
+        
+        self.assertTrue(self.check_if_game_properties_are_equal(game, memcache.get(game_name)))
+    
+    def test_get_game_id_from_name(self):
+        game_id = self.management.GetGameIdFromName("a")
+        self.assertEqual(game_id, None)
+        game_id = self.management.SetGameIdFromName("a")
+        self.assertEqual(game_id, memcache.get("a", namespace=GameManagement.NAME_NAMESPACE))
+        
+    def test_get_game_id_from_name(self):
+        self.assertEqual(None, memcache.get("a", namespace=GameManagement.NAME_NAMESPACE))
+        # Make sure an error isn't thrown because "a" isn't a game name yet.
+        self.management.RemoveGameName("a")
+        self.assertEqual(None, memcache.get("a", namespace=GameManagement.NAME_NAMESPACE))
+        
+        game_id = self.management.SetGameIdFromName("a")
+        self.assertEqual(game_id, memcache.get("a", namespace=GameManagement.NAME_NAMESPACE))
+        
+        self.management.RemoveGameName("a")
+        self.assertEqual(None, memcache.get("a", namespace=GameManagement.NAME_NAMESPACE))
+     
+    #def test_game_exists(self):
+    #    game = GameBoardHex(1, 'a')
+    #    gameId = 1
+    #    self.assertFalse(self.management.GameExists(gameId))
+    #    self.management.NewGame(gameId, game)
+    #    self.assertTrue(self.management.GameExists(gameId))
     
 if __name__ == '__main__':
     unittest.main()
