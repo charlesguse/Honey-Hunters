@@ -125,7 +125,7 @@ honeyhunters.joinMatchmakerGame = function(tries) {
             {
                 honeyhunters.gameId = state['GameId'];
                 honeyhunters.playerId = state['PlayerId'];
-                honeyhunters.newGame();
+                honeyhunters.getGameConstants();
             }
             else
             {
@@ -148,7 +148,7 @@ honeyhunters.hostGame = function(gameName) {
 		{
             honeyhunters.gameId = state['GameId'];
 			honeyhunters.playerId = state['PlayerId'];
-			honeyhunters.newGame();
+			honeyhunters.getGameConstants();
 		}
 		else
 		{
@@ -171,7 +171,7 @@ honeyhunters.joinGame = function(gameName) {
 		{
             honeyhunters.gameId = state['GameId'];
 			honeyhunters.playerId = state['PlayerId'];
-			honeyhunters.newGame();
+			honeyhunters.getGameConstants();
 		}
 		else
 		{
@@ -183,9 +183,20 @@ honeyhunters.joinGame = function(gameName) {
 	});
 };
 
+honeyhunters.getGameConstants = function() {
+	var site = honeyhunters.BASE_SITE + "/HexConstants"
+    
+	goog.net.XhrIo.send(site, function(e) {
+		var xhr = e.target;
+		var gameConstants = xhr.getResponseJson();
+		console.log(gameConstants);
+        honeyhunters.newGame(gameConstants);
+	});
+};
+
 // load new game scene
-honeyhunters.newGame = function() {
-    var scene = new honeyhunters.HexBoard();
+honeyhunters.newGame = function(gameConstants) {
+    var scene = new honeyhunters.HexBoard(gameConstants);
 	honeyhunters.director.replaceScene(scene, lime.transitions.Dissolve);
 };
 

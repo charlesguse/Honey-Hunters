@@ -10,10 +10,10 @@ goog.require('lime.Scene');
  * @constructor
  * @extends lime.Scene
  */
-honeyhunters.HexBoard = function() {
+honeyhunters.HexBoard = function(gameConstants) {
 	lime.Scene.call(this);
 	
-	this.initConstants();
+	this.initConstants(gameConstants);
 	this.initMediumSpecificVariables();
 	
 	var x = this.determineBoardLayerXPosition();
@@ -38,7 +38,7 @@ honeyhunters.HexBoard = function() {
 };
 goog.inherits(honeyhunters.HexBoard, lime.Scene);
 
-honeyhunters.HexBoard.prototype.initConstants = function() {
+honeyhunters.HexBoard.prototype.initConstants = function(gameConstants) {
 	this.UI_BOX_COLOR = "#A09A6D"
 	
 	this.NOT_VISIBLE_COLOR = "#93645A";
@@ -48,12 +48,14 @@ honeyhunters.HexBoard.prototype.initConstants = function() {
 	this.YOUR_COLOR = "#5E8C6A";
 	this.OPPONENTS_COLOR = "#8C2318";
 
-	this.NOT_VISIBLE_SPOT = -2;
+    console.log(gameConstants);
+    
+	this.NOT_VISIBLE_SPOT = gameConstants['NotVisibleSpot'];
 	this.HONEY_SPOT = -1
-	this.EMPTY_SPOT = 0;
+	this.EMPTY_SPOT = gameConstants['EmptySpot'];
 
-	this.BOARD_SIZE_X = 13;
-	this.BOARD_SIZE_Y = 13;
+	this.BOARD_SIZE_X = gameConstants['BoardSize'][0];
+	this.BOARD_SIZE_Y = gameConstants['BoardSize'][1];
 }
 
 honeyhunters.HexBoard.prototype.initMediumSpecificVariables = function() {
@@ -242,7 +244,7 @@ honeyhunters.HexBoard.prototype.updateHexBoardObject = function(){
 		
 		if (board.game_state["Gameover"])
 			lime.scheduleManager.unschedule(board.updateHexBoardObject);
-  });
+    });
 };
 
 honeyhunters.HexBoard.prototype.updateBoard = function(){

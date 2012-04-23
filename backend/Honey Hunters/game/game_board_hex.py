@@ -1,8 +1,8 @@
 import game_board_base as gbb
 
 class GameBoardHex(gbb.GameBoardBase):
-    SIZE = (13, 13)
-    TOTAL_HONEY = 31
+    SIZE = (8, 8)
+    TOTAL_HONEY = 11
     
     def BoardSize(self):
         return GameBoardHex.SIZE

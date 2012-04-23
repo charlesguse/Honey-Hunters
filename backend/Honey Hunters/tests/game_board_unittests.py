@@ -56,10 +56,10 @@ class TestGameBoardHex(unittest.TestCase):
         self.assertFalse(self.baseLogic.PlayerExists('b'))
         
     def test_board_size(self):
-        self.assertEqual(self.baseLogic.BoardSize(), (13, 13))
+        self.assertEqual(self.baseLogic.BoardSize(), (8, 8))
     
     def test_total_honey(self):
-        self.assertEqual(self.baseLogic.TotalHoney(), 31)
+        self.assertEqual(self.baseLogic.TotalHoney(), 11)
 
     def test_check_player_ids(self):
         self.assertEqual(self.baseLogic.playerOne, 1)

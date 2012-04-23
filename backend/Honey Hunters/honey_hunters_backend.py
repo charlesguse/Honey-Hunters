@@ -173,10 +173,10 @@ class HoneyHuntersHexConstants:
         web.header("Access-Control-Allow-Origin", accessControlAllowOriginValue)
         game = gbh.GameBoardHex()
         return {
-            'WinCondition': game.TotalHoney() / 2 + 1,
+            #'WinCondition': game.TotalHoney() / 2 + 1,
             'BoardSize': game.BoardSize(),
-            'NotVisibleSpot': gbb.GameBoardBase.EMPTY_SPOT,
-            'EmptySpot': gbb.GameBoardBase.NOT_VISIBLE
+            'NotVisibleSpot': gbb.GameBoardBase.NOT_VISIBLE,
+            'EmptySpot': gbb.GameBoardBase.EMPTY_SPOT
         }
             
 def main():
