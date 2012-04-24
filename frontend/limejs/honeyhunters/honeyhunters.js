@@ -189,7 +189,7 @@ honeyhunters.getGameConstants = function() {
 	goog.net.XhrIo.send(site, function(e) {
 		var xhr = e.target;
 		var gameConstants = xhr.getResponseJson();
-		console.log(gameConstants);
+        
         honeyhunters.newGame(gameConstants);
 	});
 };

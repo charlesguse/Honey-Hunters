@@ -2,8 +2,9 @@ goog.provide('honeyhunters.HexBoard');
 
 goog.require('goog.math.Box');
 goog.require('goog.math.Coordinate');
-goog.require('lime.animation.ScaleBy');
 goog.require('lime.Scene');
+
+//http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
 
 /**
  * Hex board scene for Honey Hunters game.
@@ -15,13 +16,8 @@ honeyhunters.HexBoard = function(gameConstants) {
 	
 	this.initConstants(gameConstants);
 	this.initMediumSpecificVariables();
-	
-	var x = this.determineBoardLayerXPosition();
-    this.boardLayer = new lime.Layer().setPosition(this.BOARD_X_START, this.BOARD_Y_START).setOpacity(0);
-	
-	this.scale = 1;
-	
-	this.setupBoardDragEvent();
+
+    this.boardLayer = new lime.Layer().setPosition(0, 0).setOpacity(0);
 	
     this.setupHexBoard();
 	this.appendChild(this.boardLayer);
@@ -47,8 +43,6 @@ honeyhunters.HexBoard.prototype.initConstants = function(gameConstants) {
 	this.EMPTY_COLOR = "#808080";
 	this.YOUR_COLOR = "#5E8C6A";
 	this.OPPONENTS_COLOR = "#8C2318";
-
-    console.log(gameConstants);
     
 	this.NOT_VISIBLE_SPOT = gameConstants['NotVisibleSpot'];
 	this.HONEY_SPOT = -1
@@ -59,69 +53,23 @@ honeyhunters.HexBoard.prototype.initConstants = function(gameConstants) {
 }
 
 honeyhunters.HexBoard.prototype.initMediumSpecificVariables = function() {
+    var totalSideSize = honeyhunters.WIDTH / this.BOARD_SIZE_X;
+
+    this.HEX_SIDE_LENGTH = totalSideSize / 1.73205081; // 1.73205081 = sqrt(3)
+    var tempA = this.HEX_SIDE_LENGTH / 6.0;
+    this.HEX_SIDE_LENGTH = this.HEX_SIDE_LENGTH - (tempA / this.BOARD_SIZE_X);
+
 	if (honeyhunters.RESOLUTION == honeyhunters.LOW_RESOLUTION)
-	{
-		this.HEX_SIDE_LENGTH = 13;
 		this.UI_FONT_SIZE = 16;
-	}
 	else // if (honeyhunters.RESOLUTION == honeyhunters.HIGH_RESOLUTION)
-	{
-		this.HEX_SIDE_LENGTH = 26;
 		this.UI_FONT_SIZE = 26;
-	}
-	
-	this.DRAGGABLE_PADDING = 100;
-	
+    
 	this.hexH = Math.cos(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
-	this.hexR = Math.sin(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
+	//this.hexR = Math.sin(30 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
+    // A and B come from http://grantmuller.com/drawing-a-hexagon-in-processing-java/
 	this.hexA = this.HEX_SIDE_LENGTH / 2.0;
 	this.hexB = Math.sin(60 * (Math.PI/180)) * this.HEX_SIDE_LENGTH;
-	
-	this.BOARD_X_START = this.hexH;
-	this.BOARD_Y_START = this.hexR * 4;
 }
-
-honeyhunters.HexBoard.prototype.setupBoardDragEvent = function() {
-	goog.events.unlisten(this.boardLayer,['mousedown','touchstart']);
-
-	console.log(this.scale);
-	var that = this;
-	goog.events.listen(this.boardLayer,['mousedown','touchstart'],function(e){
-		var boundingBox = that.getBoundingBox();
-		e.startDrag(false, boundingBox);
-	});
-}
-
-honeyhunters.HexBoard.prototype.getBoundingBox = function() {
-	if (honeyhunters.RESOLUTION == honeyhunters.LOW_RESOLUTION)
-		return this.getLowResolutionBoundingBox();
-	else // if (honeyhunters.RESOLUTION == honeyhunters.HIGH_RESOLUTION)
-		return this.getHighResolutionBoundingBox();
-}
-
-honeyhunters.HexBoard.prototype.getLowResolutionBoundingBox = function() {
-	var top = -honeyhunters.HEIGHT * this.scale + honeyhunters.HEIGHT / 2;
-	var right = honeyhunters.WIDTH * this.scale / 4 + honeyhunters.WIDTH / 2;
-	var bottom = honeyhunters.HEIGHT * this.scale / 4 + honeyhunters.HEIGHT / 2;
-	var left = -honeyhunters.WIDTH * this.scale * 1.25 + honeyhunters.WIDTH / 2;
-	
-	return boundingBox = new goog.math.Box(top, right, bottom, left);
-}
-
-honeyhunters.HexBoard.prototype.getHighResolutionBoundingBox = function() {
-	var top = -honeyhunters.HEIGHT * this.scale * 3 / 4 + honeyhunters.HEIGHT / 2;
-	var right = honeyhunters.WIDTH * this.scale / 4 + honeyhunters.WIDTH / 2;
-	var bottom = honeyhunters.HEIGHT * this.scale / 10 + honeyhunters.HEIGHT / 2;
-	var left = -honeyhunters.WIDTH * this.scale * 1.25 + honeyhunters.WIDTH / 2;
-	
-	return boundingBox = new goog.math.Box(top, right, bottom, left);
-}
-
-honeyhunters.HexBoard.prototype.determineBoardLayerXPosition = function(){
-	var x = this.HEX_SIDE_LENGTH * this.BOARD_SIZE_X + this.hexH * (this.BOARD_SIZE_X);
-	x = (honeyhunters.WIDTH - x) / 2;
-	return x;
-};
 
 honeyhunters.HexBoard.prototype.setupUI= function(){
 	var y = parseInt(honeyhunters.WIDTH / 5.3333);
@@ -131,8 +79,8 @@ honeyhunters.HexBoard.prototype.setupUI= function(){
 	this.uiBox.setPosition(this.uiBox.getSize().width / 2, honeyhunters.HEIGHT - this.uiBox.getSize().height * .5);
 	this.uiLayer.appendChild(this.uiBox);
 	
-	this.setupZoomOut();	
-	this.setupZoomIn();
+	//this.setupZoomOut();	
+	//this.setupZoomIn();
 	
 	this.yourScoreContainer = new lime.RoundedRect().setSize(y, y / 2).setRadius(10).setFill(this.YOUR_COLOR);
 	this.yourScoreContainer.setPosition(this.yourScoreContainer.getSize().width * -1,0);
@@ -147,69 +95,10 @@ honeyhunters.HexBoard.prototype.setupUI= function(){
 	this.uiBox.appendChild(this.honeyToWinContainer);
 };
 
-honeyhunters.HexBoard.prototype.setupZoomOut = function(){
-	var zoomFactor = .66666667;
-	var zoomOut = new lime.animation.ScaleBy(zoomFactor).setDuration(.05).enableOptimizations();
-	var that = this;
-	
-	var size = this.uiBox.getSize().height;
-	var btn = new lime.GlossyButton('-').setSize(size, size).setColor("#88A65E").setPosition(this.uiBox.getPosition().x + this.uiBox.getSize().width / 2 + size / 2, this.uiBox.getPosition().y);
-	goog.events.listen(btn, 'click', function() {
-		if (that.scale > .7)
-		{
-			that.boardLayer.runAction(zoomOut);
-			that.scale *= zoomFactor;
-			that.scale = that.scale.toFixed(4);
-			that.setupBoardDragEvent();
-		}
-		that.setupZoomOut();
-	});
-	this.uiLayer.appendChild(btn);
-	this.uiLayer.removeChild(this.zoomOutButton);
-	this.zoomOutButton = btn;
-};
-
-honeyhunters.HexBoard.prototype.setupZoomIn = function(){
-	var zoomFactor = 1.5;
-	var zoomIn = new lime.animation.ScaleBy(1.5).setDuration(.05).enableOptimizations();
-	var that = this;
-	
-	var size = this.uiBox.getSize().height;
-	var btn = new lime.GlossyButton('+').setSize(size, size).setColor("#88A65E").setPosition(this.uiBox.getPosition().x + this.uiBox.getSize().width / 2 + size * 3 / 2, this.uiBox.getPosition().y);
-	goog.events.listen(btn, 'click', function() {
-		if (that.scale < 2.5)
-		{
-			that.boardLayer.runAction(zoomIn);
-			that.scale *= zoomFactor;
-			that.scale = that.scale.toFixed(4);
-			that.setupBoardDragEvent();
-		}
-		that.setupZoomIn();
-	});
-	this.uiLayer.appendChild(btn);
-	this.uiLayer.removeChild(this.zoomInButton);
-	this.zoomInButton = btn;
-};
-
 honeyhunters.HexBoard.prototype.setupHexBoard = function(){
 	this.display_board = new Array(this.BOARD_SIZE_X);
 	this.board = new Array(this.BOARD_SIZE_X);
 	this.previous_board = new Array(this.BOARD_SIZE_X);
-	
-	
-	var topLeftX = -this.DRAGGABLE_PADDING;
-	var topLeftY = -this.DRAGGABLE_PADDING;
-	var bottomRightX = (this.hexR + this.HEX_SIDE_LENGTH) * this.BOARD_SIZE_X + this.hexR + this.DRAGGABLE_PADDING * 2;
-	var bottomRightY = this.hexH * 2 * this.BOARD_SIZE_Y + this.DRAGGABLE_PADDING * 2;
-	
-	var blah = new lime.Polygon().
-						addPoints(topLeftX, topLeftY,
-									bottomRightX, topLeftY,
-									bottomRightX, bottomRightY,
-									topLeftX, bottomRightY);
-					  
-	//blah.setFill("#FF0").setOpacity(.2);
-	this.boardLayer.appendChild(blah);
 
 	for (x = 0; x < this.BOARD_SIZE_X; x++)
 	{
@@ -318,8 +207,7 @@ honeyhunters.HexBoard.prototype.updateUI = function(){
 
 honeyhunters.HexBoard.prototype.checkIfUIHit = function(e) {
 	var totalNodes = this.uiLayer.getNumberOfChildren();
-	console.log("Total Nodes: " + totalNodes);
-	console.log(this.uiLayer);
+    
 	for (i = 0; i < totalNodes; i++)
 	{
 		if(this.uiLayer.getChildAt(i).hitTest(e))
@@ -368,22 +256,24 @@ honeyhunters.HexBoard.prototype.placeNotVisibleHex = function(xArray,yArray) {
 	goog.events.listen(hex, ['mousedown', 'touchstart'], function(e) {
 		// If the game status can not be determined or if it is not the players turn, or if the game is over, don't allow the player to click hexes
 		if (board.game_state == undefined || !board.game_state["GameStatus"] || !board.game_state["Turn"] || board.game_state["GameOver"] || board.checkIfUIHit(e))
-			return;
-		
+        {
+            console.log("here");
+            return;
+		}
 		hex.setFill(board.SELECT_COLOR);
 		
 		e.swallow('mousemove', function(e) {
-			//if (hex.hitTest(e)) {
-			//	hex.setFill(board.SELECT_COLOR);
-			//}
-			//else {
-			hex.setFill(board.NOT_VISIBLE_COLOR);
-			//}
+			if (hex.hitTest(e)) {
+				hex.setFill(board.SELECT_COLOR);
+			}
+			else {
+                hex.setFill(board.NOT_VISIBLE_COLOR);
+			}
 		});
 		e.swallow('touchmove', function(e) {
-			//if (!hex.hitTest(e)) {
-			hex.setFill(board.NOT_VISIBLE_COLOR);
-			//}
+			if (!hex.hitTest(e)) {
+                hex.setFill(board.NOT_VISIBLE_COLOR);
+            }
 		});
 		e.swallow(['mouseup', 'touchend'], function(e) {
 			if (hex.getFill().str == board.SELECT_COLOR) {
